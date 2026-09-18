@@ -1,0 +1,8 @@
+node_modules/
+runs/
+.env
+uploads/
+*.log
+
+# the kit is a junction to ../start-saudi-kit — input, versioned separately
+start-saudi-kit/
