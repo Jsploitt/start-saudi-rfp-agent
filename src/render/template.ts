@@ -160,7 +160,7 @@ mark.to-confirm .tc-tag { font-size:.62em; text-transform:uppercase; font-weight
 
 /* --- statement ------------------------------------------------------------ */
 .blk-statement .statement-text { font-size:var(--ss-text-3xl); line-height:var(--ss-leading-snug);
-  font-weight:300; max-inline-size:24ch; margin:0; }
+  font-weight:300; max-inline-size:30ch; margin:0; }
 [data-surface="dark"] .blk-statement .statement-text { color:var(--ss-cream); }
 
 /* --- steps ---------------------------------------------------------------- */
