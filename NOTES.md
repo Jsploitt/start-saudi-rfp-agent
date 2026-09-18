@@ -102,3 +102,63 @@ Saudi and is right to be bare. That is the correct reading. But it means the cou
 metric — it is a prompt for a judgement, and a reviewer watching the log will see the agent
 appearing to talk its way out of a warning. Worth framing that way in the room rather than
 letting it look like non-compliance.
+
+---
+
+## Phase 3 — the demo
+
+**The same flex-shrink trap bit twice, in unrelated code.** In Phase 1 the fitbox refused to
+widen because a flex item shrinks back to its container by default. In Phase 3 the chat
+column collapsed every message to a bare label for the same reason: thirty-six messages in a
+fixed-height flex column, each with `flex-shrink: 1`. Both times the DOM said the content was
+there and the screen said it was not, and both times the fix was `flex: 0 0 auto`. Worth
+remembering as a shape rather than as two bugs.
+
+**Three of the UI problems were only findable by looking.** The flex collapse, the
+researcher's findings arriving as a wall of prose that swallowed the middle column, and the
+preview letterboxed inside a 4:3 frame. None of them are type errors, none would fail a test,
+and all three would have been obvious on a projector. Driving the real UI with Playwright and
+screenshotting it mid-run found all three in one pass.
+
+**Running subagents as their own sessions rather than through the Task tool was the right
+call, for demo reasons rather than architectural ones.** The researcher can start the moment
+the RFP is understood and finish while the main agent is still searching the library; the
+findings come back as typed JSON instead of prose the main agent has to re-read; and when one
+runs long it is a single `await` to abandon rather than a stalled main loop. The trade is
+that the subagents are choreographed in `agent.ts` rather than by the model, which is less
+elegant and considerably more predictable.
+
+**The reviewer earned its place, twice, and not on style.** On the run that was recorded it
+found two *blocking* misses: the RFP asks for the ability to employ two or three engineers
+locally and the ability to invoice in riyals, and the draft addressed neither. Those are
+requirements, not register — the kind of thing that loses a competitive bid quietly. The
+agent then recomposed six sections to fix them. Watching a system catch its own omission and
+repair it is worth more than watching it write well.
+
+**The reviewer is also the demo's one dead spot.** It takes roughly 100 seconds and the log
+is silent while it reads. Trimming the digest from 2,600 to 1,400 characters a section
+helped, but it is inherently a whole-document read. The honest answer is to use the time: the
+deck is complete at that point, so page through it and talk. That is in the run book rather
+than hidden.
+
+**The voice gate fired on the recorded run, on "in a timely manner", in the Terms section.**
+Which is exactly where it would happen — the one section where the model is handling supplied
+legal boilerplate and its guard is down. The rejection is visible in the event log, and it is
+a better demonstration of the guardrail than any explanation of it.
+
+**The agent renamed a section mid-run and then fixed the contents page itself.** After a
+reviewer finding it recomposed "A founder who was where you are" as "A note on Taajeel and
+Start Saudi", which left the contents list stale — and it noticed, and recomposed the
+contents. Nothing instructed it to. It is a good beat, but it also means outline titles and
+section titles can drift apart, and only the agent is keeping them in sync.
+
+**The cached replay had to rebuild the document, not just the log.** Replaying events alone
+would have given a live-looking event stream over a dead preview. It re-renders each section
+through the real renderer as its `section:done` event goes by, which means the fallback
+exercises the same code path as the live run — and would catch a renderer regression rather
+than hiding one.
+
+**A live demo needs a way out of a wedged run, and I only found that by wedging one.** The
+server refused a second run with a 409 while a previous replay was still going, and the UI
+had no way to say "abandon it". `force: true` now does. The lesson is less about the flag
+than about where it was found: the second time you run the demo, not the first.
