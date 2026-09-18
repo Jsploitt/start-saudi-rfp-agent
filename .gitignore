@@ -6,3 +6,6 @@ uploads/
 
 # the kit is a junction to ../start-saudi-kit — input, versioned separately
 start-saudi-kit/
+
+uploads/
+public/tokens.css

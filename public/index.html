@@ -1,0 +1,79 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Start Saudi — proposal agent</title>
+<link rel="icon" href="assets/favicon.png">
+<link rel="stylesheet" href="tokens.css">
+<link rel="stylesheet" href="app.css">
+</head>
+<body data-surface="dark">
+
+<header class="topbar">
+  <span class="lockup lockup-light" role="img" aria-label="Start Saudi"></span>
+  <span class="topbar-title">Proposal agent</span>
+  <span class="spacer"></span>
+  <span id="mode" class="pill" hidden></span>
+  <span id="elapsed" class="pill" hidden></span>
+  <button id="export" class="btn ghost" disabled>PDF</button>
+  <button id="openfull" class="btn ghost" disabled>Full screen</button>
+</header>
+
+<main class="grid">
+
+  <!-- left: upload, then the conversation -->
+  <section class="panel panel-chat" aria-label="Conversation">
+    <div id="drop" class="drop">
+      <div class="drop-inner">
+        <div class="drop-mark"></div>
+        <p class="drop-title">Drop the RFP here</p>
+        <p class="drop-sub">PDF, DOCX or Markdown</p>
+        <button id="browse" class="btn">Choose a file</button>
+        <input id="file" type="file" accept=".pdf,.docx,.md,.txt" hidden>
+        <button id="sample" class="btn ghost small">Use the sample RFP</button>
+      </div>
+    </div>
+
+    <div id="chat" class="chat" hidden></div>
+
+    <form id="answerForm" class="answer" hidden>
+      <textarea id="answer" rows="2" placeholder="Answer the agent…" autocomplete="off"></textarea>
+      <button class="btn" type="submit">Send</button>
+    </form>
+  </section>
+
+  <!-- centre: what the agent is doing -->
+  <section class="panel panel-log" aria-label="Activity">
+    <h2 class="panel-h">What the agent is doing</h2>
+    <div id="rfpPanel" class="card" hidden>
+      <h3>The RFP, read</h3>
+      <dl id="rfpFacts"></dl>
+    </div>
+    <div id="outlinePanel" class="card" hidden>
+      <h3>Outline</h3>
+      <ol id="outlineList" class="outline"></ol>
+    </div>
+    <ol id="log" class="log"></ol>
+  </section>
+
+  <!-- right: the document -->
+  <section class="panel panel-preview" aria-label="Proposal">
+    <div class="preview-head">
+      <h2 class="panel-h">The proposal</h2>
+      <span id="progress" class="pill" hidden></span>
+    </div>
+    <div class="frame-wrap">
+      <iframe id="frame" title="Proposal preview" src="about:blank"></iframe>
+      <div id="framePlaceholder" class="placeholder">
+        <p>Sections appear here as they are written.</p>
+      </div>
+    </div>
+    <p class="frame-hint">Inside the preview: <b>←</b> <b>→</b> navigate · <b>E</b> edit · <b>F</b> full screen · <b>P</b> print</p>
+  </section>
+
+</main>
+
+<script src="app.js"></script>
+</body>
+</html>

@@ -1,0 +1,919 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Meridian Flow Systems Ltd — Start Saudi proposal</title>
+<link rel="icon" href="/assets/favicon.png">
+<style>/* ==========================================================================
+   Start Saudi — design tokens
+   Generated 2026-09-17. Machine-readable twin: brand/tokens.json
+   --------------------------------------------------------------------------
+   PROVENANCE, READ THIS FIRST
+   The authoritative source is "startsaudi brand guidelines.pdf" (Google Drive
+   id 1mbj4j30JoA5iQ1nY0I02KIVzxKVZsCSP, 76 MB). It could NOT be read in this
+   session: Drive returns an empty text layer for it (it is a flattened,
+   image-only export) and fetching the raw bytes is blocked by this
+   environment's egress policy.
+   Every value marked MEASURED below was therefore obtained by pixel-sampling
+   the official web-ready PNGs now sitting in brand/assets/. Those are real
+   exports of the identity, so the hex values are exact — but they have not
+   been reconciled against the guidelines document, and the guidelines win
+   wherever the two disagree. See OPEN-QUESTIONS.md Q1.
+   Every value marked DERIVED appears in no source at all and exists purely so
+   a build has something consistent to reach for. Replace on sight.
+   ========================================================================== */
+
+:root {
+  /* --- Core palette ----------------------------------------------------- */
+
+  /* MEASURED — favicon.png icon field (725,304 px), mark-color.png wordmark
+     ink (30,722 px), pattern-navy.png base field (790,649 px). The primary dark. */
+  --ss-navy: #10192A;
+
+  /* MEASURED — logo-stacked-dark.png wordmark ink (37,410 px).
+     DISCREPANCY: the stacked lockup inks the wordmark 1–2 points per channel
+     off the horizontal lockup's #10192A. Almost certainly export drift, not a
+     second token. Standardise on --ss-navy. See OPEN-QUESTIONS.md Q2. */
+  --ss-navy-alt: #0F172B;
+
+  /* MEASURED — pattern-navy.png, the lighter of the pattern's two flat tones
+     (341,279 px). The pattern is built from exactly two colours, this and
+     --ss-navy. Reuse it as the card / raised-surface tone on navy. */
+  --ss-navy-raised: #14243E;
+
+  /* MEASURED — light end of the mark's gradient, present in every asset.
+     The brand's single accent. 11.22:1 on --ss-navy. */
+  --ss-green: #27EAA6;
+
+  /* MEASURED — dark end of the mark's gradient. 9.80:1 on white, which makes
+     it the only safe green for text on light surfaces. */
+  --ss-green-deep: #004D43;
+
+  /* MEASURED — reversed lockup ink (mark-light.png, 34,472 px) and the power
+     glyph inside the mark. A green-tinted white. Deliberately NOT #FFFFFF. */
+  --ss-cream: #EBFFF6;
+
+  /* DERIVED — no source shows the light page field; the light-background
+     lockups ship on transparency. Confirm white vs cream. */
+  --ss-white: #FFFFFF;
+
+  /* --- Neutrals --------------------------------------------------------- */
+  /* DERIVED IN FULL — no grey ramp exists in any source reachable from this
+     session. Interpolated on the navy hue between --ss-navy and white so that
+     a build is at least internally consistent. Replace wholesale. */
+  --ss-neutral-50:  #F5F7FA;
+  --ss-neutral-100: #E8ECF2;
+  --ss-neutral-200: #D1D8E3;
+  --ss-neutral-300: #AAB5C6;
+  --ss-neutral-400: #7C8AA0;
+  --ss-neutral-500: #586780;
+  --ss-neutral-600: #3D4B62;
+  --ss-neutral-700: #2A3647;
+  --ss-neutral-800: #1B2739;
+  --ss-neutral-900: #10192A; /* = --ss-navy (MEASURED) */
+
+  /* --- The mark gradient ------------------------------------------------ */
+  /* MEASURED — least-squares fit of the green channel against pixel position
+     across the 48,201 gradient pixels of mark-icon.png. Axis runs 41.3° below
+     horizontal, top-left to bottom-right; darkest 0.5% of pixels average
+     exactly #004D43, lightest 0.5% average exactly #27EAA6.
+     This gradient belongs to the mark. No source uses it as a background or
+     behind text — don't be the first. */
+  --ss-gradient-mark: linear-gradient(131deg, #004D43 0%, #27EAA6 100%);
+
+  /* --- Semantic --------------------------------------------------------- */
+  /* DERIVED IN FULL — the identity defines no status colours. A proposal needs
+     at least a positive and a caution tone for callouts. See OPEN-QUESTIONS Q3. */
+  --ss-success: #27EAA6; /* reuse the brand green rather than add a second */
+  --ss-caution: #E8B93C; /* placeholder — nothing in the identity defines an amber */
+  --ss-danger:  #E2564A; /* placeholder — nothing in the identity defines a red */
+
+  /* --- Light surface (default) ------------------------------------------ */
+  --ss-bg:         var(--ss-white);
+  --ss-bg-raised:  var(--ss-neutral-50);
+  --ss-ink:        var(--ss-navy);
+  --ss-ink-muted:  var(--ss-neutral-500); /* 5.73:1 on white — AA, not AAA */
+  --ss-accent:     var(--ss-green-deep);  /* NOT --ss-green: 1.57:1 on white */
+  --ss-hairline:   var(--ss-neutral-200);
+
+  /* --- Typography ------------------------------------------------------- */
+  /* SUBSTITUTE, NOT SPECIFIED. The real typeface could not be determined —
+     see typography.md for the glyph-matching evidence. Montserrat is the
+     closest freely available face that carries both the hairline weight the
+     "START" lockup needs and the heavy weight "SAUDI" needs. */
+  --ss-font-display: "Montserrat", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --ss-font-body:    "Montserrat", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --ss-font-arabic:  "IBM Plex Sans Arabic", "Noto Sans Arabic", sans-serif; /* DERIVED — see typography.md */
+  --ss-font-mono:    ui-monospace, "SF Mono", Menlo, monospace; /* DERIVED */
+
+  /* DERIVED — no type scale is available. A 1.25 (major third) ramp on a
+     16px base, which suits a document more than a landing page. */
+  --ss-text-xs:   0.75rem;   /* 12px */
+  --ss-text-sm:   0.875rem;  /* 14px */
+  --ss-text-base: 1rem;      /* 16px */
+  --ss-text-lg:   1.25rem;   /* 20px */
+  --ss-text-xl:   1.5625rem; /* 25px */
+  --ss-text-2xl:  1.953rem;  /* 31px */
+  --ss-text-3xl:  2.441rem;  /* 39px */
+  --ss-text-4xl:  3.052rem;  /* 49px */
+
+  --ss-leading-tight:  1.15;
+  --ss-leading-snug:   1.3;
+  --ss-leading-normal: 1.55;
+  --ss-leading-loose:  1.7;
+
+  /* MEASURED (as behaviour, not as a number): in both lockups the wordmark is
+     tracked out so that "START" and "SAUDI" set to exactly the same width —
+     502 px each in the 1080 px export. Wide letter-spacing on the light weight
+     is a real characteristic of this identity, so display type should carry it. */
+  --ss-tracking-display: 0.08em;
+  --ss-tracking-normal:  0;
+
+  /* --- Space, radius, shadow -------------------------------------------- */
+  /* DERIVED — 4px base scale. Nothing in any source defines spacing. */
+  --ss-space-1: 0.25rem;
+  --ss-space-2: 0.5rem;
+  --ss-space-3: 0.75rem;
+  --ss-space-4: 1rem;
+  --ss-space-6: 1.5rem;
+  --ss-space-8: 2rem;
+  --ss-space-12: 3rem;
+  --ss-space-16: 4rem;
+
+  /* MEASURED as a proportion: the favicon's rounded square reaches its left
+     edge at y = 251 of 1080, so the corner radius is 23.2% of the side — an
+     app-icon "squircle" radius. Everything else here is DERIVED. */
+  --ss-radius-sm:   4px;
+  --ss-radius-md:   8px;
+  --ss-radius-lg:   16px;
+  --ss-radius-icon: 23%;
+  --ss-radius-full: 999px;
+
+  /* DERIVED — tinted with the navy hue rather than neutral black. */
+  --ss-shadow-sm: 0 1px 2px rgba(16, 25, 42, 0.06);
+  --ss-shadow-md: 0 4px 12px rgba(16, 25, 42, 0.10);
+  --ss-shadow-lg: 0 12px 32px rgba(16, 25, 42, 0.14);
+}
+
+/* --- Dark surface --------------------------------------------------------
+   Not a "dark mode" so much as the brand's own native register: the favicon,
+   the pattern and the reversed lockup all live on navy. Apply with
+   <body data-surface="dark"> or a wrapper element. */
+[data-surface="dark"],
+.ss-surface-dark {
+  --ss-bg:        var(--ss-navy);
+  --ss-bg-raised: var(--ss-navy-raised);
+  --ss-ink:       var(--ss-cream);
+  --ss-ink-muted: var(--ss-neutral-300); /* 8.48:1 on navy */
+  --ss-accent:    var(--ss-green);       /* 11.22:1 on navy */
+  --ss-hairline:  rgba(235, 255, 246, 0.14);
+}
+
+
+
+/* The pattern is a real asset, not a CSS effect. Tile brand/assets/pattern-navy.png. */
+.ss-pattern {
+  background-color: var(--ss-navy);
+  background-image: url("/assets/pattern-navy.png");
+  background-repeat: repeat;
+}
+
+/* --- fonts: self-hosted so the deck renders identically offline ----------- */
+@font-face { font-family:"Montserrat"; src:url("/assets/fonts/montserrat.woff2") format("woff2");
+  font-weight:100 900; font-style:normal; font-display:swap; }
+@font-face { font-family:"IBM Plex Sans Arabic"; src:url("/assets/fonts/plex-arabic-400.woff2") format("woff2");
+  font-weight:400; font-style:normal; font-display:swap;
+  unicode-range:U+0600-06FF,U+0750-077F,U+0870-088E,U+0890-0891,U+0897-08E1,U+08E3-08FF,
+    U+200C-200E,U+2010-2011,U+204F,U+2E41,U+FB50-FDFF,U+FE70-FE74,U+FE76-FEFC; }
+@font-face { font-family:"IBM Plex Sans Arabic"; src:url("/assets/fonts/plex-arabic-600.woff2") format("woff2");
+  font-weight:600; font-style:normal; font-display:swap;
+  unicode-range:U+0600-06FF,U+0750-077F,U+0870-088E,U+0890-0891,U+0897-08E1,U+08E3-08FF,
+    U+200C-200E,U+2010-2011,U+204F,U+2E41,U+FB50-FDFF,U+FE70-FE74,U+FE76-FEFC; }
+/* Latin subset of the same family, so company names, numerals and dates inside an
+   Arabic paragraph set in a matched face instead of falling through to the system. */
+@font-face { font-family:"IBM Plex Sans Arabic"; src:url("/assets/fonts/plex-latin-400.woff2") format("woff2");
+  font-weight:400; font-style:normal; font-display:swap; unicode-range:U+0000-00FF,U+2000-206F,U+2212; }
+@font-face { font-family:"IBM Plex Sans Arabic"; src:url("/assets/fonts/plex-latin-600.woff2") format("woff2");
+  font-weight:600; font-style:normal; font-display:swap; unicode-range:U+0000-00FF,U+2000-206F,U+2212; }
+
+*, *::before, *::after { box-sizing:border-box; }
+html, body { margin:0; padding:0; height:100%; overflow:hidden; background:var(--ss-navy);
+  font-family:var(--ss-font-body); -webkit-font-smoothing:antialiased; }
+
+#stage { position:absolute; top:0; left:0; width:1920px; height:1080px; transform-origin:0 0; }
+
+/* --- the page ------------------------------------------------------------- */
+.page {
+  position:absolute; inset:0; width:1920px; height:1080px;
+  display:none; flex-direction:column;
+  padding:var(--pad-block) var(--pad-inline);
+  background:var(--ss-bg); color:var(--ss-ink);
+  --pad-inline:132px; --pad-block:88px;
+}
+.page.is-current { display:flex; }
+@media (prefers-reduced-motion:no-preference) {
+  .page.is-current > * { animation:rise .34s cubic-bezier(.2,.7,.3,1) both; }
+  .page.is-current > .page-body { animation-delay:.05s; }
+  @keyframes rise { from { opacity:0; transform:translateY(14px); } to { opacity:1; transform:none; } }
+}
+
+.page-head { display:flex; align-items:center; justify-content:space-between; flex:0 0 auto;
+  padding-block-end:22px; border-block-end:1px solid var(--ss-hairline); margin-block-end:44px; }
+.page-title { font-size:var(--ss-text-sm); text-transform:uppercase;
+  letter-spacing:var(--ss-tracking-display); font-weight:400; color:var(--ss-ink-muted); }
+
+/* The supplied lockups are padded into a 1080x1080 box: the artwork occupies
+   105,402 -> 974,677, i.e. 870x275 at an offset. Sizing by image dimensions
+   renders the logo a quarter of its intended size, so crop to the content box.
+   See brand/logo-usage.md. */
+.lockup { --lw:148px; display:inline-block; flex:0 0 auto;
+  width:var(--lw); height:calc(var(--lw) * 275 / 870);
+  background-repeat:no-repeat;
+  background-size:calc(var(--lw) * 1080 / 870) auto;
+  background-position:calc(var(--lw) * -105 / 870) calc(var(--lw) * -402 / 870); }
+.lockup-light { background-image:url("/assets/mark-light.png"); }  /* light ink, on dark */
+.lockup-dark  { background-image:url("/assets/mark-color.png"); }  /* dark ink, on light */
+.page-mark { --lw:152px; opacity:.92; }
+
+.page-body { flex:1 1 auto; min-height:0; display:flex; align-items:center; }
+.fitbox { width:100%; flex:0 0 auto; transform-origin:0 0; display:flex; flex-direction:column; gap:34px; }
+
+.page-foot { flex:0 0 auto; display:flex; justify-content:space-between; align-items:flex-end;
+  padding-block-start:22px; margin-block-start:34px; border-block-start:1px solid var(--ss-hairline);
+  font-size:var(--ss-text-xs); color:var(--ss-ink-muted); letter-spacing:.02em; }
+.pageno { font-variant-numeric:tabular-nums; }
+
+/* --- type ----------------------------------------------------------------- */
+.page h1 { font-size:var(--ss-text-4xl); line-height:var(--ss-leading-tight); font-weight:200;
+  letter-spacing:var(--ss-tracking-display); text-transform:uppercase; margin:0; }
+.page h3 { font-size:var(--ss-text-lg); line-height:var(--ss-leading-snug); font-weight:600;
+  margin:0 0 14px; letter-spacing:.01em; }
+.page p { margin:0 0 14px; font-size:var(--ss-text-lg); line-height:var(--ss-leading-normal);
+  max-inline-size:96ch; }
+.page p:last-child { margin-block-end:0; }
+.page strong { font-weight:700; }
+.page code { font-family:var(--ss-font-mono); font-size:.9em; }
+.page ul { margin:0 0 14px; padding-inline-start:26px; font-size:var(--ss-text-lg);
+  line-height:var(--ss-leading-normal); }
+.page li { margin-block-end:8px; }
+.eyebrow { font-size:var(--ss-text-sm); text-transform:uppercase; font-weight:500;
+  letter-spacing:var(--ss-tracking-display); color:var(--ss-accent); margin-block-end:18px; }
+.note { font-size:var(--ss-text-base) !important; color:var(--ss-ink-muted);
+  line-height:var(--ss-leading-normal); margin-block-start:18px !important; }
+
+/* the gap that survives into the shipped document */
+mark.to-confirm { background:color-mix(in srgb, var(--ss-caution) 22%, transparent);
+  color:inherit; border-radius:var(--ss-radius-sm); padding:.08em .38em;
+  box-shadow:inset 0 -2px 0 var(--ss-caution); }
+mark.to-confirm .tc-tag { font-size:.62em; text-transform:uppercase; font-weight:700;
+  letter-spacing:.1em; color:var(--ss-ink-muted); margin-inline-end:.35em; vertical-align:.12em; }
+
+/* --- source provenance ---------------------------------------------------- */
+.blk { position:relative; }
+.src { position:absolute; inset-block-start:2px; inset-inline-end:-34px; width:24px; height:24px;
+  display:grid; place-items:center; cursor:help; opacity:0; transition:opacity .16s; }
+.blk:hover .src, .src:focus-visible { opacity:1; }
+.src-dot { width:7px; height:7px; border-radius:var(--ss-radius-full); background:var(--ss-accent); }
+.src-pop { position:absolute; inset-block-start:26px; inset-inline-end:0; width:330px;
+  background:var(--ss-navy); color:var(--ss-cream); padding:14px 16px;
+  border-radius:var(--ss-radius-md); box-shadow:var(--ss-shadow-lg);
+  font-size:var(--ss-text-xs); line-height:1.5; opacity:0; pointer-events:none; transition:opacity .16s;
+  z-index:20; text-align:start; }
+.src:hover .src-pop, .src:focus-visible .src-pop { opacity:1; }
+.src-pop em { color:var(--ss-green); font-style:normal; text-transform:uppercase;
+  letter-spacing:.08em; font-size:10px; }
+.src-pop ul { margin:6px 0 0; padding-inline-start:16px; font-size:var(--ss-text-xs); }
+.src-pop li { margin-block-end:3px; }
+
+/* --- cover ---------------------------------------------------------------- */
+.page-cover { padding:110px 132px; background:var(--ss-navy); position:relative; overflow:hidden; }
+.page-cover::before { content:""; position:absolute; inset:0;
+  background-image:url("/assets/pattern-navy.png"); background-size:760px; opacity:.22; }
+.page-cover::after { content:""; position:absolute; inset-block-end:-380px; inset-inline-end:-260px;
+  width:900px; height:900px; border-radius:var(--ss-radius-full);
+  background:radial-gradient(circle, color-mix(in srgb, var(--ss-green) 16%, transparent), transparent 62%); }
+.page-cover .page-body { align-items:stretch; }
+.page-cover .fitbox { height:100%; }
+.blk-cover { position:relative; z-index:2; height:100%; display:flex; flex-direction:column;
+  justify-content:space-between; align-items:flex-start; }
+.cover-lockup { --lw:330px; }
+.cover-body { margin-block:auto; }
+.cover-sector { font-size:var(--ss-text-sm); text-transform:uppercase;
+  letter-spacing:var(--ss-tracking-display); color:var(--ss-green); margin-block-end:22px; }
+.cover-client { font-size:var(--ss-text-4xl) !important; font-weight:200 !important;
+  letter-spacing:var(--ss-tracking-display); text-transform:uppercase; margin:0 0 26px !important;
+  color:var(--ss-cream); }
+.cover-title { font-size:var(--ss-text-2xl) !important; font-weight:300; color:var(--ss-cream);
+  opacity:.92; max-inline-size:26ch; line-height:var(--ss-leading-snug); }
+.cover-foot { width:100%; display:flex; justify-content:space-between; align-items:flex-end;
+  font-size:var(--ss-text-base); color:var(--ss-neutral-300); }
+.cover-endorse strong { color:var(--ss-cream); font-weight:600; }
+.cover-meta .sep { opacity:.5; margin-inline:6px; }
+
+.page[data-surface="dark"]:not(.page-cover) { position:relative; }
+.page[data-surface="dark"]:not(.page-cover)::before { content:""; position:absolute; inset:0;
+  background-image:url("/assets/pattern-navy.png"); background-size:900px; opacity:.13; pointer-events:none; }
+.page[data-surface="dark"] > * { position:relative; z-index:1; }
+
+/* --- statement ------------------------------------------------------------ */
+.blk-statement .statement-text { font-size:var(--ss-text-3xl); line-height:var(--ss-leading-snug);
+  font-weight:300; max-inline-size:30ch; margin:0; }
+[data-surface="dark"] .blk-statement .statement-text { color:var(--ss-cream); }
+
+/* --- steps ---------------------------------------------------------------- */
+ol.steps { list-style:none; margin:0; padding:0; display:flex; flex-direction:column; gap:2px; }
+.step { display:grid; grid-template-columns:64px 1fr auto; align-items:baseline; gap:20px;
+  padding:16px 18px; border-radius:var(--ss-radius-md); transition:background .2s, opacity .2s; }
+.step-n { font-size:var(--ss-text-xl); font-weight:700; color:var(--ss-accent);
+  font-variant-numeric:tabular-nums; }
+.step-main { display:block; }
+.step-title { display:block; font-size:var(--ss-text-lg); font-weight:600; }
+.step-text { display:block; font-size:var(--ss-text-base); color:var(--ss-ink-muted); margin-block-start:3px; }
+.step-dur { font-size:var(--ss-text-base); font-weight:600; white-space:nowrap;
+  padding:5px 13px; border-radius:var(--ss-radius-full);
+  background:color-mix(in srgb, var(--ss-accent) 11%, transparent); }
+[data-stepped] .step, [data-stepped] .tl-row { opacity:.32; }
+[data-stepped] .step.on, [data-stepped] .tl-row.on { opacity:1; }
+[data-stepped] .step.on { background:var(--ss-bg-raised); }
+
+/* --- timeline ------------------------------------------------------------- */
+ol.tl { list-style:none; margin:0; padding:0; }
+.tl-row { display:grid; grid-template-columns:330px 1fr 130px; gap:26px; align-items:baseline;
+  padding:17px 0 17px 30px; border-inline-start:2px solid var(--ss-hairline); position:relative;
+  transition:opacity .2s; }
+.tl-row::before { content:""; position:absolute; inset-inline-start:-7px; inset-block-start:26px;
+  width:12px; height:12px; border-radius:var(--ss-radius-full);
+  background:var(--ss-accent); box-shadow:0 0 0 4px var(--ss-bg); }
+.tl-when { font-weight:700; font-size:var(--ss-text-base); }
+.tl-what { font-size:var(--ss-text-base); line-height:var(--ss-leading-normal); }
+.tl-who { font-size:var(--ss-text-sm); color:var(--ss-ink-muted); text-align:end;
+  text-transform:uppercase; letter-spacing:.06em; }
+
+/* --- two col -------------------------------------------------------------- */
+.blk-two_col { display:grid; grid-template-columns:1fr 1fr; gap:64px; }
+.blk-two_col.rail { grid-template-columns:1.55fr 1fr; gap:56px; }
+.blk-two_col.rail .col-right { background:var(--ss-bg-raised); padding:30px 32px;
+  border-radius:var(--ss-radius-lg); border-inline-start:3px solid var(--ss-accent); }
+.blk-two_col.rail .col-right p, .blk-two_col.rail .col-right li { font-size:var(--ss-text-base); }
+
+/* --- stats ---------------------------------------------------------------- */
+.stat-grid { display:grid; grid-auto-flow:column; grid-auto-columns:1fr; gap:38px; align-items:stretch; }
+.stat { padding-inline-start:22px; border-inline-start:3px solid var(--ss-accent);
+  display:flex; flex-direction:column; justify-content:space-between; }
+.stat-fig { font-size:var(--ss-text-4xl); font-weight:800; line-height:1.05;
+  letter-spacing:-.015em; font-variant-numeric:tabular-nums; text-wrap:balance; }
+.stat-cap { font-size:var(--ss-text-base); color:var(--ss-ink-muted); margin-block-start:12px;
+  line-height:var(--ss-leading-snug); }
+
+/* --- table ---------------------------------------------------------------- */
+.blk-table table { width:100%; border-collapse:collapse; font-size:var(--ss-text-base); }
+.blk-table th { text-align:start; font-size:var(--ss-text-sm); text-transform:uppercase;
+  letter-spacing:var(--ss-tracking-display); font-weight:500; color:var(--ss-ink-muted);
+  padding:0 20px 14px 0; border-block-end:2px solid var(--ss-hairline); }
+.blk-table td { padding:15px 20px 15px 0; border-block-end:1px solid var(--ss-hairline);
+  vertical-align:top; line-height:var(--ss-leading-normal); }
+.blk-table tr td:last-child, .blk-table tr th:last-child { padding-inline-end:0; }
+.blk-table.plain td:first-child { font-weight:600; width:38%; }
+.blk-table tbody tr:last-child td { border-block-end:none; }
+
+/* --- team ----------------------------------------------------------------- */
+.team-grid { display:grid; grid-auto-flow:column; grid-auto-columns:1fr; gap:44px; }
+.person-name { font-size:var(--ss-text-lg); font-weight:700; }
+.person-role { font-size:var(--ss-text-sm); color:var(--ss-accent); text-transform:uppercase;
+  letter-spacing:.06em; margin-block:5px 12px; }
+.person-bio { font-size:var(--ss-text-base) !important; color:var(--ss-ink-muted); }
+
+/* --- quote ---------------------------------------------------------------- */
+.blk-quote blockquote { margin:0; font-size:var(--ss-text-2xl); font-weight:300;
+  line-height:var(--ss-leading-snug); padding-inline-start:34px;
+  border-inline-start:3px solid var(--ss-accent); max-inline-size:28ch; }
+.attrib { margin-block-start:20px; padding-inline-start:37px; font-size:var(--ss-text-base);
+  color:var(--ss-ink-muted); }
+
+/* --- RTL: logical properties throughout, so the grid mirrors with no second sheet --- */
+.rtl-body { direction:rtl; text-align:start; font-family:var(--ss-font-arabic);
+  line-height:var(--ss-leading-loose); }
+.rtl-body h3 { font-size:var(--ss-text-xl); font-weight:600; margin-block-end:20px; }
+.rtl-body p, .rtl-body li { font-size:var(--ss-text-lg); line-height:var(--ss-leading-loose); }
+.rtl-body strong { font-weight:600; }
+.rtl-body [dir="ltr"], .rtl-body code { unicode-bidi:isolate; }
+.eyebrow.ltr { direction:ltr; }
+
+/* --- close ---------------------------------------------------------------- */
+.blk-close .cta { font-size:var(--ss-text-xl) !important; max-inline-size:60ch; }
+.sig-grid { display:grid; grid-auto-flow:column; grid-auto-columns:1fr; gap:64px; margin-block:44px 38px; }
+.sig { border-block-start:1px solid var(--ss-hairline); padding-block-start:18px; }
+.sig-party { font-weight:700; font-size:var(--ss-text-base); margin-block-end:14px; }
+.sig-line { font-size:var(--ss-text-base); color:var(--ss-ink-muted); margin-block-end:9px; }
+.contact { font-size:var(--ss-text-base); color:var(--ss-ink-muted); line-height:1.75; }
+
+/* --- chrome: progress bar, hints, edit mode ------------------------------- */
+#progress { position:fixed; inset-block-start:0; inset-inline-start:0; height:3px;
+  background:var(--ss-green); width:0; z-index:99; transition:width .3s ease; }
+#hint { position:fixed; inset-block-end:16px; inset-inline-end:18px; z-index:99;
+  font-family:var(--ss-font-body); font-size:11px; letter-spacing:.06em; text-transform:uppercase;
+  color:var(--ss-neutral-400); background:color-mix(in srgb, var(--ss-navy) 78%, transparent);
+  padding:7px 13px; border-radius:var(--ss-radius-full); opacity:0; transition:opacity .3s;
+  pointer-events:none; }
+#hint.show { opacity:1; }
+body.editing #stage { outline:3px solid var(--ss-green); outline-offset:-3px; }
+body.editing [contenteditable]:hover { background:color-mix(in srgb, var(--ss-green) 10%, transparent); }
+body.editing [contenteditable]:focus { outline:2px solid var(--ss-green); outline-offset:3px;
+  border-radius:var(--ss-radius-sm); }
+.page.is-writing { position:relative; }
+.page.is-writing::after { content:"drafting"; position:absolute; inset-block-start:88px;
+  inset-inline-end:132px; font-size:11px; text-transform:uppercase; letter-spacing:.12em;
+  color:var(--ss-accent); animation:pulse 1.4s ease-in-out infinite; }
+@keyframes pulse { 50% { opacity:.35; } }
+
+/* --- print / PDF ---------------------------------------------------------- */
+@media print {
+  html, body { overflow:visible; background:#fff; }
+  #stage { position:static; transform:none !important; width:auto; height:auto; }
+  #progress, #hint { display:none; }
+  .page { position:static; display:flex !important; width:1920px; height:1080px;
+    page-break-after:always; break-after:page; animation:none !important; }
+  .src { display:none; }
+}
+</style>
+</head>
+<body>
+<div id="progress"></div>
+<div id="stage">
+<section class="page page-cover" id="sec-cover"
+    data-section="cover" data-surface="dark"
+    >
+    
+    <div class="page-body"><div class="fitbox"><div class="blk blk-cover cover" data-block="0" ><span class="lockup lockup-light cover-lockup" role="img" aria-label="Start Saudi"></span>
+         <div class="cover-body">
+           <div class="cover-sector">Flow measurement and metering equipment, service and calibration · United Kingdom</div>
+           <h1 class="cover-client">Meridian Flow Systems Ltd</h1>
+           <p class="cover-title">Your Saudi company, registered in 15 working days from complete documents</p>
+         </div>
+         <div class="cover-foot">
+           <div class="cover-meta">18 September 2026 <span class="sep">·</span> 2026.09.18.0001</div>
+           <div class="cover-endorse">Powered by <strong>Taajeel</strong></div>
+         </div><span class="src" tabindex="0" aria-label="Sources"><span class="src-dot"></span><span class="src-pop"><em>Drawn from</em><ul><li>content/voice.md</li><li>content/04-process.md</li></ul></span></span></div></div></div>
+    
+  </section>
+<section class="page" id="sec-contents"
+    data-section="contents" data-surface="light"
+    >
+    <header class="page-head">
+         <span class="page-title">Contents</span>
+         <span class="lockup page-mark lockup-dark" role="img" aria-label="Start Saudi"></span>
+       </header>
+    <div class="page-body"><div class="fitbox"><div class="blk blk-table table" data-block="0" ><h3>Contents</h3>
+         <table data-cols="2">
+           <thead><tr><th>Title</th><th>Page</th></tr></thead>
+           <tbody><tr><td>Introduction</td><td>3</td></tr><tr><td>Start Saudi, powered by Taajeel</td><td>4</td></tr><tr><td>A founder who was where you are</td><td>5</td></tr><tr><td>About Meridian Flow Systems</td><td>6</td></tr><tr><td>You don't know what you don't know</td><td>7</td></tr><tr><td>Scope of work — the whole path</td><td>8</td></tr><tr><td>Time frame — working back from 1 March 2027</td><td>9</td></tr><tr><td>Subsidiary or branch</td><td>10</td></tr><tr><td>Tracked separately — bank account and GM visa</td><td>11</td></tr><tr><td>Not covered</td><td>12</td></tr><tr><td>The Fees</td><td>13</td></tr><tr><td>Government fees</td><td>14</td></tr><tr><td>Before we can confirm the plan</td><td>15</td></tr><tr><td>Signoff</td><td>16</td></tr><tr><td>Terms and Conditions</td><td>17</td></tr></tbody>
+         </table>
+         </div></div></div>
+    <footer class="page-foot"><span>Start Saudi · Powered by Taajeel</span><span class="pageno">2 / 18</span></footer>
+  </section>
+<section class="page" id="sec-introduction"
+    data-section="introduction" data-surface="light"
+    >
+    <header class="page-head">
+         <span class="page-title">Introduction</span>
+         <span class="lockup page-mark lockup-dark" role="img" aria-label="Start Saudi"></span>
+       </header>
+    <div class="page-body"><div class="fitbox"><div class="blk blk-statement statement" data-block="0" ><div class="eyebrow">Introduction</div>
+         <p class="statement-text">This proposal is for the Saudi entity you need to keep supplying your client from March.</p></div>
+<div class="blk blk-understanding understanding" data-block="1" ><h3>Reference 2026.09.18.0001</h3><p>Meridian Flow Systems Ltd, Unit 7, Thornfield Business Park, Harrogate, HG3 1QN, United Kingdom.</p><p>18 September 2026.</p><p>Atte: Katherine Brody, Managing Director · +44 7700 900412 · k.brody@meridianflow.co.uk</p><p>Subject: Saudi commercial registration for Meridian Flow Systems Ltd, service and calibration activity (the &quot;Assignment&quot;).</p><p>Thank you for the brief you sent on 15 September. We've read it in full, and this proposal answers it point by point: eligibility, the ordered steps, what we need from you and when, the fee split, what isn't included, and our terms.</p><p>A short list of open items sits near the end. They're the things your brief doesn't yet settle, and we'd rather name them than guess at them.</p></div></div></div>
+    <footer class="page-foot"><span>Start Saudi · Powered by Taajeel</span><span class="pageno">3 / 18</span></footer>
+  </section>
+<section class="page" id="sec-about-start-saudi"
+    data-section="about-start-saudi" data-surface="light"
+    >
+    <header class="page-head">
+         <span class="page-title">Start Saudi, powered by Taajeel</span>
+         <span class="lockup page-mark lockup-dark" role="img" aria-label="Start Saudi"></span>
+       </header>
+    <div class="page-body"><div class="fitbox"><div class="blk blk-statement statement" data-block="0" ><div class="eyebrow">Who we are</div>
+         <p class="statement-text">We run the whole path. You sign from wherever you are.</p><span class="src" tabindex="0" aria-label="Sources"><span class="src-dot"></span><span class="src-pop"><em>Drawn from</em><ul><li>content/voice.md</li></ul></span></span></div>
+<div class="blk blk-understanding understanding" data-block="1" ><h3>What Start Saudi does</h3><p>Investment licence, trade name, articles of association, notarisation, commercial registration, government accounts. Start Saudi runs the whole path for foreign founders and foreign companies, handled remotely.</p><p>Start Saudi is powered by Taajeel. Taajeel Business Solutions Co. LLC is the parent and the operating company — Taajeel runs the filings.</p><span class="src" tabindex="0" aria-label="Sources"><span class="src-dot"></span><span class="src-pop"><em>Drawn from</em><ul><li>content/01-company.md</li><li>content/voice.md</li></ul></span></span></div>
+<div class="blk blk-stat_row stats" data-block="2" ><div class="stat-grid">
+           <div class="stat"><div class="stat-fig">4,638+</div><div class="stat-cap">companies opened</div></div><div class="stat"><div class="stat-fig">SAR 5.1B+</div><div class="stat-cap">attracted in capital and investment</div></div><div class="stat"><div class="stat-fig">15 working days</div><div class="stat-cap">to launch, from complete documents</div></div>
+         </div>
+         <p class="note">Taajeel's track record, as published by Taajeel.</p><span class="src" tabindex="0" aria-label="Sources"><span class="src-dot"></span><span class="src-pop"><em>Drawn from</em><ul><li>content/01-company.md</li><li>content/03-credentials.md</li></ul></span></span></div>
+<div class="blk blk-two_col two-col" data-block="3" ><div class="col col-left"><h3>Some of the names on that list</h3><p>PKF Global</p><p>Grand View Research</p><p>OpenSooq</p><p>Ajlan &amp; Bros Holding</p></div>
+         <div class="col col-right"><h3>The boundary</h3><p>These figures are Taajeel's, self-published. Start Saudi has no separate track record of its own, and doesn't claim one.</p></div><span class="src" tabindex="0" aria-label="Sources"><span class="src-dot"></span><span class="src-pop"><em>Drawn from</em><ul><li>content/03-credentials.md</li></ul></span></span></div></div></div>
+    <footer class="page-foot"><span>Start Saudi · Powered by Taajeel</span><span class="pageno">4 / 18</span></footer>
+  </section>
+<section class="page" id="sec-founder-quote"
+    data-section="founder-quote" data-surface="light"
+    >
+    <header class="page-head">
+         <span class="page-title">A founder who was where you are</span>
+         <span class="lockup page-mark lockup-dark" role="img" aria-label="Start Saudi"></span>
+       </header>
+    <div class="page-body"><div class="fitbox"><div class="blk blk-statement statement" data-block="0" ><div class="eyebrow">Not the first founder to ask this</div>
+         <p class="statement-text">You've been round this loop once already. Here's how we're structured differently.</p></div>
+<div class="blk blk-quote quote" data-block="1" ><blockquote>I went to a few places first and lost money.</blockquote>
+         <div class="attrib">Dr. Sulaiman Alsalameh, founder of ChiefNest, United States</div>
+         <p class="note">Sulaiman is a Taajeel client and a partner in Start Saudi.</p><span class="src" tabindex="0" aria-label="Sources"><span class="src-dot"></span><span class="src-pop"><em>Drawn from</em><ul><li>content/03-credentials.md</li></ul></span></span></div>
+<div class="blk blk-understanding understanding" data-block="2" ><h3>You told us why you're wary</h3><p>You've said you went round this loop once already with an adviser in Dubai who took a deposit and went quiet for six weeks. We're not going to answer that with a mood — the rest of this proposal is the answer: durations attached to every step, the parts we don't control named plainly, and open items flagged rather than smoothed over. If any section of this document is vague where it should be specific, that's the thing to hold us to.</p></div></div></div>
+    <footer class="page-foot"><span>Start Saudi · Powered by Taajeel</span><span class="pageno">5 / 18</span></footer>
+  </section>
+<section class="page" id="sec-about-client"
+    data-section="about-client" data-surface="light"
+    >
+    <header class="page-head">
+         <span class="page-title">About Meridian Flow Systems</span>
+         <span class="lockup page-mark lockup-dark" role="img" aria-label="Start Saudi"></span>
+       </header>
+    <div class="page-body"><div class="fitbox"><div class="blk blk-statement statement" data-block="0" ><div class="eyebrow">About the client</div>
+         <p class="statement-text">One existing client, one new requirement: a Saudi commercial registration to keep supplying them.</p></div>
+<div class="blk blk-two_col two-col rail" data-block="1" ><div class="col col-left"><h3>Meridian Flow Systems Ltd</h3><p>Registered in England and Wales, company number 10284471, incorporated March 2016.</p><p>Registered office: Unit 7, Thornfield Business Park, Harrogate, HG3 1QN.</p><p>Eleven employees. Turnover to March 2026: £3.1m.</p><p>Shareholders: Katherine Brody, British — 60%. Dr. Assefa Bekele, Ethiopian and British dual national — 40%. Both directors; Katherine is the sole authorised signatory.</p><p>Since 2024, subcontractor to a Saudi water infrastructure contractor via their UK procurement arm. From the next contract phase, that contractor requires suppliers to hold a Saudi commercial registration. The Saudi-side scope is service and calibration only — equipment continues to be supplied from the UK under the existing arrangement.</p></div>
+         <div class="col col-right"><h3>Entity type</h3><p>Foreign-owned LLC, subject to confirmation of structure (see “Subsidiary or branch”)</p><p>Activity: service and calibration of flow-measurement equipment</p><p>Registered activity band: <code><mark class="to-confirm"><span class="tc-tag">to confirm</span> MISA classification of the Saudi-side service and calibration activity</mark></code></p><p>Attestation route: apostille (United Kingdom is a Hague Apostille Convention member)</p></div></div>
+<div class="blk blk-understanding understanding" data-block="2" ><h3>What this means for eligibility</h3><p>For most activities, yes — Saudi Arabia allows full foreign ownership under an investment licence from the Ministry of Investment. A small number of activities are restricted or need extra approvals, and we confirm yours before you commit.</p><p>You've now confirmed the Saudi-side scope is service and calibration, not equipment sale. General services activities of this kind typically sit in the band open to 100% foreign ownership, with no Saudi shareholding requirement — unlike retail or wholesale trading, which carries a materially higher capital requirement. We confirm the exact classification against your registered activity wording before you commit.</p><p>Because the United Kingdom is a Hague Apostille Convention member, your corporate documents can be apostilled at home and then attested by Saudi authorities, without a separate embassy visit. You've told us you can start the apostille process now on your FY2025 accounts — that's the right thing to do first, and it's on your side of the 15-working-day clock, not ours.</p><span class="src" tabindex="0" aria-label="Sources"><span class="src-dot"></span><span class="src-pop"><em>Drawn from</em><ul><li>content/06-faq.md</li><li>content/07-client-types.md</li><li>content/02-services/00-document-preparation.md</li></ul></span></span></div>
+<div class="blk blk-understanding understanding" data-block="3" ><h3>This is the one confirmation everything else waits on</h3><p>R1 — confirming eligibility and its conditions — is the first thing your brief asked for, and it's the one fact this proposal cannot yet give you outright. Until MISA confirms the activity band against your exact registered wording, treat every downstream figure and date in this proposal — the capital benchmark, the fee milestones, the 1 March timeline — as contingent on that classification, not as settled. We've flagged it at each point it matters, not only here.</p></div></div></div>
+    <footer class="page-foot"><span>Start Saudi · Powered by Taajeel</span><span class="pageno">6 / 18</span></footer>
+  </section>
+<section class="page" id="sec-dont-know"
+    data-section="dont-know" data-surface="light"
+    >
+    <header class="page-head">
+         <span class="page-title">You don't know what you don't know</span>
+         <span class="lockup page-mark lockup-dark" role="img" aria-label="Start Saudi"></span>
+       </header>
+    <div class="page-body"><div class="fitbox"><div class="blk blk-statement statement" data-block="0" ><div class="eyebrow">Before the path</div>
+         <p class="statement-text">Most founders can see the opportunity clearly and cannot see the path at all.</p><span class="src" tabindex="0" aria-label="Sources"><span class="src-dot"></span><span class="src-pop"><em>Drawn from</em><ul><li>content/voice.md</li></ul></span></span></div>
+<div class="blk blk-understanding understanding" data-block="1" ><h3>That gap is the whole problem</h3><p>Am I missing a deadline? Is there a payment I was supposed to make? Is something up for renewal that nobody told me about? That gap is the whole problem, and it is expensive.</p><p>You've told us you've been round this loop once already, with an adviser who took a deposit and went quiet for six weeks. We're not going to ask you to trust us instead — the next section is the whole path, named step by step, with the durations attached and the parts we don't control stated plainly.</p><span class="src" tabindex="0" aria-label="Sources"><span class="src-dot"></span><span class="src-pop"><em>Drawn from</em><ul><li>content/01-company.md</li><li>content/voice.md</li></ul></span></span></div></div></div>
+    <footer class="page-foot"><span>Start Saudi · Powered by Taajeel</span><span class="pageno">7 / 18</span></footer>
+  </section>
+<section class="page" id="sec-scope"
+    data-section="scope" data-surface="light"
+    data-stepped="1">
+    <header class="page-head">
+         <span class="page-title">Scope of work — the whole path</span>
+         <span class="lockup page-mark lockup-dark" role="img" aria-label="Start Saudi"></span>
+       </header>
+    <div class="page-body"><div class="fitbox"><div class="blk blk-statement statement" data-block="0" ><div class="eyebrow">Scope of work</div>
+         <p class="statement-text">We run the whole path. You sign from wherever you are.</p><span class="src" tabindex="0" aria-label="Sources"><span class="src-dot"></span><span class="src-pop"><em>Drawn from</em><ul><li>content/voice.md</li></ul></span></span></div>
+<div class="blk blk-approach_steps steps" data-block="1" data-steps="6"><h3>Your Saudi company, registered in 15 working days</h3>
+         <ol class="steps">
+           <li class="step" data-step="1">
+             <span class="step-n">1</span>
+             <span class="step-main"><span class="step-title">Investment ministry licence</span>
+             <span class="step-text">The MISA licence that lets a foreign owner hold the company.</span></span>
+             <span class="step-dur">10 working days</span>
+           </li><li class="step" data-step="2">
+             <span class="step-n">2</span>
+             <span class="step-main"><span class="step-title">Trade name reservation</span>
+             <span class="step-text">Your company name, reserved with the Ministry of Commerce.</span></span>
+             <span class="step-dur">48 hours, in parallel with step 1</span>
+           </li><li class="step" data-step="3">
+             <span class="step-n">3</span>
+             <span class="step-main"><span class="step-title">Articles and notarisation</span>
+             <span class="step-text">Articles of association drafted, signed and notarised.</span></span>
+             <span class="step-dur">72 hours</span>
+           </li><li class="step" data-step="4">
+             <span class="step-n">4</span>
+             <span class="step-main"><span class="step-title">Commercial registration</span>
+             <span class="step-text">The CR is issued. Your company legally exists.</span></span>
+             <span class="step-dur">24 hours</span>
+           </li><li class="step" data-step="5">
+             <span class="step-n">5</span>
+             <span class="step-main"><span class="step-title">Government account activation</span>
+             <span class="step-text">Tax, social insurance and labour portals switched on.</span></span>
+             <span class="step-dur">24 hours</span>
+           </li><li class="step" data-step="6">
+             <span class="step-n">6</span>
+             <span class="step-main"><span class="step-title">After incorporation</span>
+             <span class="step-text">GM visa and bank account, tracked separately.</span></span>
+             <span class="step-dur">own timeline</span>
+           </li>
+         </ol>
+         <p class="note">Steps 1 and 2 run in parallel. The durations above are the government's, not ours.</p><span class="src" tabindex="0" aria-label="Sources"><span class="src-dot"></span><span class="src-pop"><em>Drawn from</em><ul><li>content/04-process.md</li></ul></span></span></div>
+<div class="blk blk-understanding understanding" data-block="2" ><h3>What the 15 days does and does not include</h3><p>The clock starts when your documents are complete — apostilled and attested. Document readiness before submission is the single biggest cause of delay for foreign applicants, and it sits on your side of the line, not ours.</p><p>&quot;Working days&quot; means Saudi business days: Sunday to Thursday. It is a service promise, not a legal guarantee from any ministry.</p><span class="src" tabindex="0" aria-label="Sources"><span class="src-dot"></span><span class="src-pop"><em>Drawn from</em><ul><li>content/04-process.md</li><li>content/voice.md</li></ul></span></span></div>
+<div class="blk blk-understanding understanding" data-block="3" ><h3>Employing your two or three engineers</h3><p>Government account activation, step 5, opens your Qiwa establishment file, GOSI and the labour portals automatically the day your CR is issued — that's what makes local employment possible at all, and it's included in the 15 days. It switches the portals on; it does not itself register each individual hire or check your quota position.</p><p>Two things sit outside what this scope confirms, and we're not going to imply otherwise. First, Saudi Arabia runs a Nitaqat/Saudization quota system that weighs a company's Saudi-to-foreign headcount ratio, and a small foreign-owned entity hiring two to three foreign engineers is exactly the kind of case that needs checking against your specific activity and size band — <code><mark class="to-confirm"><span class="tc-tag">to confirm</span> Nitaqat exposure for a service/calibration entity at your projected headcount</mark></code>. Second, each engineer needs their own work visa and Iqama process, run individually and on its own timeline, the same GM-visa mechanics described under &quot;Tracked separately&quot; — not covered by government account activation, and not something this proposal prices per engineer.</p><p>If you want a realistic hire-by date for Daniel or others relative to CR issuance, tell us which role goes first and we'll cost and schedule it as we do the GM visa.</p><span class="src" tabindex="0" aria-label="Sources"><span class="src-dot"></span><span class="src-pop"><em>Drawn from</em><ul><li>content/06-faq.md</li><li>content/02-services/05-government-account-activation.md</li><li>content/02-services/07-gm-visa-and-residency.md</li></ul></span></span></div></div></div>
+    <footer class="page-foot"><span>Start Saudi · Powered by Taajeel</span><span class="pageno">8 / 18</span></footer>
+  </section>
+<section class="page" id="sec-timeline"
+    data-section="timeline" data-surface="light"
+    data-stepped="1">
+    <header class="page-head">
+         <span class="page-title">Time frame — working back from 1 March 2027</span>
+         <span class="lockup page-mark lockup-dark" role="img" aria-label="Start Saudi"></span>
+       </header>
+    <div class="page-body"><div class="fitbox"><div class="blk blk-statement statement" data-block="0" ><div class="eyebrow">Time frame</div>
+         <p class="statement-text">You've confirmed the supplier listing needs only the CR. That's the date we build back from.</p></div>
+<div class="blk blk-timeline timeline" data-block="1" data-steps="6"><h3>Working back from your contract start — contingent on activity classification</h3>
+         <ol class="tl">
+           <li class="tl-row" data-step="1">
+             <span class="tl-when">Now</span>
+             <span class="tl-what">Apostille process starts on FY2025 accounts, certificate of incorporation and articles.</span>
+             <span class="tl-who">Yours</span>
+           </li><li class="tl-row" data-step="2">
+             <span class="tl-when">By late October 2026</span>
+             <span class="tl-what">2026 accounts filed and available for attestation; full document set apostilled and attested, ready to submit.</span>
+             <span class="tl-who">Yours</span>
+           </li><li class="tl-row" data-step="3">
+             <span class="tl-when">From document submission</span>
+             <span class="tl-what">15 working days (Saudi business days, Sunday to Thursday) to a registered company with active government accounts — assumes your activity classification is confirmed as open-band before submission.</span>
+             <span class="tl-who">Ours</span>
+           </li><li class="tl-row" data-step="4">
+             <span class="tl-when">Before end of January 2027</span>
+             <span class="tl-what">CR in hand and available to put you on the contractor's approved supplier list.</span>
+             <span class="tl-who">Ours, then the contractor's</span>
+           </li><li class="tl-row" data-step="5">
+             <span class="tl-when">2–3 weeks after CR</span>
+             <span class="tl-what">Bank account application and compliance — run by the bank, tracked separately.</span>
+             <span class="tl-who">The bank's</span>
+           </li><li class="tl-row" data-step="6">
+             <span class="tl-when">1 March 2027</span>
+             <span class="tl-what">Contract package begins. Invoicing in riyals depends on both the CR and an active bank account being in place.</span>
+             <span class="tl-who">Yours</span>
+           </li>
+         </ol>
+         <p class="note">The durations above are the government's, not ours. This whole sequence assumes documents reach us complete by late October and that your activity classifies as open-band — R1 is not yet confirmed (see About Meridian Flow Systems). If classification changes the licence route, or the accounts or attestation slip, every date here moves.</p><span class="src" tabindex="0" aria-label="Sources"><span class="src-dot"></span><span class="src-pop"><em>Drawn from</em><ul><li>content/04-process.md</li><li>content/02-services/00-document-preparation.md</li><li>content/02-services/06-bank-account-opening.md</li></ul></span></span></div>
+<div class="blk blk-understanding understanding" data-block="2" ><h3>Registered and operating are two different milestones</h3><p>Your CR proves your company exists, not that it can trade yet. A MISA licence permits foreign ownership in principle, but you cannot open a bank account, sign contracts, invoice clients, or hire staff until your CR is issued — and the bank account, which invoicing in riyals depends on, sits outside the 15 working days and runs on the bank's own timeline.</p><span class="src" tabindex="0" aria-label="Sources"><span class="src-dot"></span><span class="src-pop"><em>Drawn from</em><ul><li>content/voice.md</li><li>content/02-services/01-misa-investment-licence.md</li></ul></span></span></div></div></div>
+    <footer class="page-foot"><span>Start Saudi · Powered by Taajeel</span><span class="pageno">9 / 18</span></footer>
+  </section>
+<section class="page" id="sec-structure-decision"
+    data-section="structure-decision" data-surface="light"
+    >
+    <header class="page-head">
+         <span class="page-title">Subsidiary or branch</span>
+         <span class="lockup page-mark lockup-dark" role="img" aria-label="Start Saudi"></span>
+       </header>
+    <div class="page-body"><div class="fitbox"><div class="blk blk-statement statement" data-block="0" ><div class="eyebrow">A decision, not a detail</div>
+         <p class="statement-text">You've asked us to send this recommendation to both directors. Here it is.</p></div>
+<div class="blk blk-two_col two-col" data-block="1" ><div class="col col-left"><h3>Subsidiary — a new Saudi LLC</h3><p>A separate Saudi legal entity, wholly owned by Meridian Flow Systems Ltd.</p><p>Capital: no fixed statutory minimum for a general LLC post-2023 reform — capital must be sufficient to achieve the company's objective. A practical benchmark commonly cited for a services company is around SAR 500,000, contingent on your activity classification being confirmed as services rather than trading.</p><p>You can employ engineers directly, hold the CR in the new entity's name, and operate with full independence from the UK company's own filings.</p></div>
+         <div class="col col-right"><h3>Branch of the foreign company</h3><p>An extension of Meridian Flow Systems Ltd itself, not a new legal entity.</p><p>Capital: the sources on branch capital are inconsistent — some cite a minimum, others state the parent's own financial standing substitutes for local capital. We don't state a figure here; the confirmed position comes with your written quotation.</p><p>Activity is tied more closely to matching the parent's registered business, which fits a single-client service contract.</p></div><span class="src" tabindex="0" aria-label="Sources"><span class="src-dot"></span><span class="src-pop"><em>Drawn from</em><ul><li>content/05-pricing.md</li><li>content/02-services/08-branch-of-foreign-company.md</li></ul></span></span></div>
+<div class="blk blk-understanding understanding" data-block="2" ><h3>Our lean, and why — contingent on activity classification</h3><p>You've told us you'd prefer to keep the UK company as parent and set up a subsidiary rather than a branch, and that you're not wedded to it. On what you've told us — direct local employment of engineers, and wanting operational independence — a subsidiary is the better fit, and it's the structure this proposal costs and schedules.</p><p>This recommendation, and the SAR 500,000 benchmark next to it, both assume your activity classifies as services. That's not yet confirmed — see About Meridian Flow Systems. If MISA classifies any part of your Saudi-side scope differently, the capital position changes and we'll requote before you commit.</p><p>The branch capital position is unsettled in our own sources, so we're not going to present it as the simpler option on the strength of a number we can't confirm. If you'd like the branch route costed alongside the subsidiary before you decide, say so and we'll do both.</p></div></div></div>
+    <footer class="page-foot"><span>Start Saudi · Powered by Taajeel</span><span class="pageno">10 / 18</span></footer>
+  </section>
+<section class="page" id="sec-tracked-separately"
+    data-section="tracked-separately" data-surface="light"
+    >
+    <header class="page-head">
+         <span class="page-title">Tracked separately — bank account and GM visa</span>
+         <span class="lockup page-mark lockup-dark" role="img" aria-label="Start Saudi"></span>
+       </header>
+    <div class="page-body"><div class="fitbox"><div class="blk blk-statement statement" data-block="0" ><div class="eyebrow">After incorporation</div>
+         <p class="statement-text">GM visa and bank account, tracked separately.</p><span class="src" tabindex="0" aria-label="Sources"><span class="src-dot"></span><span class="src-pop"><em>Drawn from</em><ul><li>content/voice.md</li></ul></span></span></div>
+<div class="blk blk-two_col two-col" data-block="1" ><div class="col col-left"><h3>Bank account</h3><p>Opens once your CR is active. Banks typically take 2–3 weeks and run their own compliance entirely outside the registration process — it can take as long as registration itself.</p><p>Opening the account after incorporation may need a visit depending on the bank, and we tell you upfront. You've told us neither director has been to Saudi Arabia and that extended travel is difficult for Katherine — worth planning around now, and we'll tell you which banks can proceed without one as soon as we know your structure.</p><p>The bank decides. We track it and tell you where it stands; we don't promise an outcome.</p></div>
+         <div class="col col-right"><h3>GM visa and residency</h3><p>The company needs a General Manager from day one. The GM does not have to be a hired manager — if you own the company, you can list yourself as GM.</p><p>Owning and residing are legally separate questions. You can appoint a GM who already lives in Saudi Arabia, or become the resident GM yourself, which requires the GM visa, medical checks and a move.</p><p>You've told us to treat Daniel Ayre's visa as a later engagement, once the work materialises, and to give you the cost now. We've priced it as an optional service below — it runs on its own timeline, separately from this scope.</p></div><span class="src" tabindex="0" aria-label="Sources"><span class="src-dot"></span><span class="src-pop"><em>Drawn from</em><ul><li>content/02-services/06-bank-account-opening.md</li><li>content/02-services/07-gm-visa-and-residency.md</li><li>content/06-faq.md</li></ul></span></span></div></div></div>
+    <footer class="page-foot"><span>Start Saudi · Powered by Taajeel</span><span class="pageno">11 / 18</span></footer>
+  </section>
+<section class="page" id="sec-not-covered"
+    data-section="not-covered" data-surface="light"
+    >
+    <header class="page-head">
+         <span class="page-title">Not covered</span>
+         <span class="lockup page-mark lockup-dark" role="img" aria-label="Start Saudi"></span>
+       </header>
+    <div class="page-body"><div class="fitbox"><div class="blk blk-statement statement" data-block="0" ><div class="eyebrow">Not covered</div>
+         <p class="statement-text">Here is what is not in the price, and here is what it would cost.</p></div>
+<div class="blk blk-table table" data-block="1" ><h3>Outside this scope</h3>
+         <table data-cols="3">
+           <thead><tr><th>Item</th><th>Fee</th><th>Unit</th></tr></thead>
+           <tbody><tr><td>Open bank account</td><td>SAR 4,500</td><td>per bank</td></tr><tr><td>Temporary General Manager</td><td>SAR 8,000 for three months; SAR 4,000/month to extend</td><td>—</td></tr><tr><td>Attestation</td><td>SAR 850</td><td>per document</td></tr><tr><td>Translation</td><td>SAR 150</td><td>per 250 words</td></tr><tr><td>Registration of trademark</td><td>SAR 18,000</td><td>per trademark or category</td></tr><tr><td>Recruitment services</td><td>1 month's salary</td><td>per employee</td></tr><tr><td>Address and office services</td><td>SAR 2,500</td><td>monthly subscription</td></tr><tr><td>HRO &amp; GRO operations</td><td>SAR 4,800</td><td>monthly subscription</td></tr></tbody>
+         </table>
+         <p class="note">GM visa and residency for Daniel Ayre is not priced in this table — see the Fees section for that quotation on its own. Prices as published by Taajeel; confirmed for your scope in writing before you commit.</p><span class="src" tabindex="0" aria-label="Sources"><span class="src-dot"></span><span class="src-pop"><em>Drawn from</em><ul><li>content/05-pricing.md</li></ul></span></span></div>
+<div class="blk blk-understanding understanding" data-block="2" ><h3>GM visa and residency, when you're ready</h3><p>You've asked us to treat Daniel Ayre's visa as a later engagement and to give you the cost now, rather than scope it into this registration. Taajeel's own documented path for a GM residency runs through the support letter, MISA and HRSD approvals, work visa issuance, medical checks and the resident iqama — Taajeel lists it as fifteen steps but its own chart prints sixteen line items, a discrepancy in Taajeel's own material rather than ours. We're not going to round that away or state it more precisely than our source does. It runs on its own timeline once you're ready to start it.</p><p><code><mark class="to-confirm"><span class="tc-tag">to confirm</span> fee for GM visa and residency as a standalone engagement — not itemised as a fixed figure in our published optional-services list</mark></code>.</p><span class="src" tabindex="0" aria-label="Sources"><span class="src-dot"></span><span class="src-pop"><em>Drawn from</em><ul><li>content/02-services/07-gm-visa-and-residency.md</li><li>content/05-pricing.md</li></ul></span></span></div></div></div>
+    <footer class="page-foot"><span>Start Saudi · Powered by Taajeel</span><span class="pageno">12 / 18</span></footer>
+  </section>
+<section class="page" id="sec-fees"
+    data-section="fees" data-surface="light"
+    >
+    <header class="page-head">
+         <span class="page-title">The Fees</span>
+         <span class="lockup page-mark lockup-dark" role="img" aria-label="Start Saudi"></span>
+       </header>
+    <div class="page-body"><div class="fitbox"><div class="blk blk-statement statement" data-block="0" ><div class="eyebrow">The fees</div>
+         <p class="statement-text">The price has two parts.</p></div>
+<div class="blk blk-understanding understanding" data-block="1" ><h3>Taajeel's service fee and the government fees — contingent on activity classification</h3><p>Taajeel's service fee, for running the filings end to end: <code><mark class="to-confirm"><span class="tc-tag">to confirm</span> service fee for a service/calibration subsidiary of your size and scope — Q17</mark></code>. VAT at 15% is charged on it and shown separately.</p><p>Government fees, for the licence, the registration and the other filings, are set by the authorities and vary by activity and company type. They are not ours. For your activity and structure they come to <code><mark class="to-confirm"><span class="tc-tag">to confirm</span> government fee total</mark></code>, excluding the MISA licence fee, which is confirmed in writing when it is billed.</p><p>You've told us there's no fixed ceiling and to cost this on its merits — we're quoting our standard fee structure below rather than working to a budget you haven't set. Both the service fee and the government fee total depend on R1 — your activity classification — being confirmed; a different band changes the licence route and the figures with it.</p><span class="src" tabindex="0" aria-label="Sources"><span class="src-dot"></span><span class="src-pop"><em>Drawn from</em><ul><li>content/05-pricing.md</li></ul></span></span></div>
+<div class="blk blk-table table" data-block="2" ><h3>Payment milestones — assumes the activity band confirmed in About Meridian Flow Systems</h3>
+         <table data-cols="2">
+           <thead><tr><th>Milestone</th><th>Share</th></tr></thead>
+           <tbody><tr><td>On signing</td><td>50%</td></tr><tr><td>On approval of the MISA licence for the confirmed activity</td><td>35%</td></tr><tr><td>On issue of the commercial registration</td><td>15%</td></tr></tbody>
+         </table>
+         <span class="src" tabindex="0" aria-label="Sources"><span class="src-dot"></span><span class="src-pop"><em>Drawn from</em><ul><li>content/05-pricing.md</li></ul></span></span></div>
+<div class="blk blk-two_col two-col" data-block="3" ><div class="col col-left"><h3>Standing notes</h3><p>Government fees are not included in the service fee.</p><p>Payments due within five days of the maturity date.</p><p>Payments are non-refundable and payable on signing.</p><p>Invoices issued on the maturity dates.</p><p>VAT charged at 15% on Taajeel's fee.</p></div>
+         <div class="col col-right"><h3>Not a fee</h3><p>Your company's share capital is money you put into your own company — not money paid to us or to the government.</p><p>For a general LLC there's no fixed statutory minimum post-2023 reform; capital must be sufficient to achieve the company's objective. <code><mark class="to-confirm"><span class="tc-tag">to confirm</span> working capital expectation once your activity classification is confirmed</mark></code>.</p></div><span class="src" tabindex="0" aria-label="Sources"><span class="src-dot"></span><span class="src-pop"><em>Drawn from</em><ul><li>content/05-pricing.md</li><li>content/06-faq.md</li></ul></span></span></div></div></div>
+    <footer class="page-foot"><span>Start Saudi · Powered by Taajeel</span><span class="pageno">13 / 18</span></footer>
+  </section>
+<section class="page" id="sec-government-fees"
+    data-section="government-fees" data-surface="light"
+    >
+    <header class="page-head">
+         <span class="page-title">Government fees</span>
+         <span class="lockup page-mark lockup-dark" role="img" aria-label="Start Saudi"></span>
+       </header>
+    <div class="page-body"><div class="fitbox"><div class="blk blk-statement statement" data-block="0" ><div class="eyebrow">Government fees</div>
+         <p class="statement-text">Set by the authorities. Not ours, not negotiable, not our margin.</p><span class="src" tabindex="0" aria-label="Sources"><span class="src-dot"></span><span class="src-pop"><em>Drawn from</em><ul><li>content/05-pricing.md</li></ul></span></span></div>
+<div class="blk blk-table table" data-block="1" ><h3>What you pay that isn't our fee</h3>
+         <table data-cols="2">
+           <thead><tr><th>Authority / filing</th><th>Fee</th></tr></thead>
+           <tbody><tr><td>MISA investment licence</td><td><code><mark class="to-confirm"><span class="tc-tag">to confirm</span> — published sources contradict each other on this figure; confirmed in writing when it is billed</mark></code></td></tr><tr><td>Trade name reservation</td><td><code><mark class="to-confirm"><span class="tc-tag">to confirm</span></mark></code></td></tr><tr><td>Articles of association notarisation</td><td><code><mark class="to-confirm"><span class="tc-tag">to confirm</span></mark></code></td></tr><tr><td>Commercial registration</td><td><code><mark class="to-confirm"><span class="tc-tag">to confirm</span></mark></code></td></tr><tr><td>Government account activation</td><td><code><mark class="to-confirm"><span class="tc-tag">to confirm</span></mark></code></td></tr><tr><td>Estimated total</td><td><code><mark class="to-confirm"><span class="tc-tag">to confirm</span> — not stated until your activity classification and structure are confirmed</mark></code></td></tr></tbody>
+         </table>
+         <p class="note">We do not quote the MISA licence fee from memory — published guidance disagrees with itself, and we'd rather confirm it in writing than repeat a number we can't stand behind.</p><span class="src" tabindex="0" aria-label="Sources"><span class="src-dot"></span><span class="src-pop"><em>Drawn from</em><ul><li>content/05-pricing.md</li></ul></span></span></div>
+<div class="blk blk-understanding understanding" data-block="2" ><h3>Separate from capital</h3><p>Government fees and your company's share capital are two different things. Fees are paid to the authorities for the filings above. Capital is money you put into your own company, and for retail or wholesale trading at 100% foreign ownership it carries a materially higher figure — SAR 30,000,000 — than the practical benchmark for a services company. You've confirmed your Saudi-side scope is service and calibration, not equipment sale, so that trading threshold should not apply to you — we confirm it against the exact activity wording before you commit.</p><span class="src" tabindex="0" aria-label="Sources"><span class="src-dot"></span><span class="src-pop"><em>Drawn from</em><ul><li>content/05-pricing.md</li></ul></span></span></div></div></div>
+    <footer class="page-foot"><span>Start Saudi · Powered by Taajeel</span><span class="pageno">14 / 18</span></footer>
+  </section>
+<section class="page" id="sec-open-items"
+    data-section="open-items" data-surface="light"
+    >
+    <header class="page-head">
+         <span class="page-title">Before we can confirm the plan</span>
+         <span class="lockup page-mark lockup-dark" role="img" aria-label="Start Saudi"></span>
+       </header>
+    <div class="page-body"><div class="fitbox"><div class="blk blk-statement statement" data-block="0" ><div class="eyebrow">Open items</div>
+         <p class="statement-text">You've answered most of what mattered. Three things are still open.</p></div>
+<div class="blk blk-table table" data-block="1" ><h3>Answered in your reply of 18 September</h3>
+         <table data-cols="2">
+           <thead><tr><th>Question</th><th>Your answer</th></tr></thead>
+           <tbody><tr><td>Whether the supplier listing needs more than the CR</td><td>No — the CR alone is sufficient, confirmed with the contractor</td></tr><tr><td>Whether attestation can start now</td><td>Yes — apostille starting on FY2025 accounts</td></tr><tr><td>Whether the Saudi contract includes equipment sale</td><td>No — service and calibration only; equipment stays supplied from the UK</td></tr><tr><td>Who the structure recommendation should reach</td><td>Both directors</td></tr><tr><td>Whether there's a fee ceiling</td><td>No — cost it on its merits</td></tr><tr><td>Daniel Ayre's GM visa</td><td>Treat as a later engagement; cost it now, don't scope it into this registration</td></tr></tbody>
+         </table>
+         </div>
+<div class="blk blk-table table" data-block="2" ><h3>Still open</h3>
+         <table data-cols="2">
+           <thead><tr><th>Question</th><th>Why it matters</th></tr></thead>
+           <tbody><tr><td>Exact MISA activity classification for the service and calibration work</td><td>Confirms which band you fall in and closes off the <code><mark class="to-confirm"><span class="tc-tag">to confirm</span></mark></code> markers on eligibility, capital and government fees</td></tr><tr><td>Whether end-January is a hard external gate or an informal target, and who on the contractor's side can confirm it in writing</td><td>Sets how much slack the plan can absorb if the October attestation runs late</td></tr><tr><td>Who is named General Manager at incorporation, if not Daniel</td><td>The CR needs a GM from day one; this determines what we file and whether an own-vs-reside decision is needed now</td></tr></tbody>
+         </table>
+         </div></div></div>
+    <footer class="page-foot"><span>Start Saudi · Powered by Taajeel</span><span class="pageno">15 / 18</span></footer>
+  </section>
+<section class="page" id="sec-close"
+    data-section="close" data-surface="dark"
+    >
+    <header class="page-head">
+         <span class="page-title">Signoff</span>
+         <span class="lockup page-mark lockup-light" role="img" aria-label="Start Saudi"></span>
+       </header>
+    <div class="page-body"><div class="fitbox"><div class="blk blk-close close" data-block="0" ><h3>This document constitutes an Engagement Letter for the Assignment presented. Kindly sign off and affix your official stamp.</h3>
+         <p class="cta">Confirm the open items above, or ask any question that's still missing an answer, then sign.</p>
+         <div class="sig-grid"><div class="sig"><div class="sig-party">Taajeel Business Solutions Co. LLC</div><div class="sig-line">Muath Abdullah A AlZahrani</div><div class="sig-line">General Manager</div><div class="sig-line"><code><mark class="to-confirm"><span class="tc-tag">to confirm</span> whether this proposal contracts as Taajeel Business Solutions Co. LLC or as a separate Start Saudi entity</mark></code></div></div><div class="sig"><div class="sig-party">Meridian Flow Systems Ltd</div><div class="sig-line">Katherine Brody</div><div class="sig-line">Managing Director</div><div class="sig-line"></div></div></div>
+         <div class="contact"><div>Reference 2026.09.18.0001</div><div>Proposals due back by Friday 3 October 2026</div></div></div></div></div>
+    <footer class="page-foot"><span>Start Saudi · Powered by Taajeel</span><span class="pageno">16 / 18</span></footer>
+  </section>
+<section class="page" id="sec-terms"
+    data-section="terms" data-surface="light"
+    >
+    <header class="page-head">
+         <span class="page-title">Terms and Conditions</span>
+         <span class="lockup page-mark lockup-dark" role="img" aria-label="Start Saudi"></span>
+       </header>
+    <div class="page-body"><div class="fitbox"><div class="blk blk-understanding understanding" data-block="0" ><h3>DEFINITIONS</h3><p>References in these Terms to the &quot;Letter&quot; and/or &quot;Proposal&quot; mean the covering letter accompanying these Terms. Unless otherwise defined, words defined in the Letter and/or &quot;Proposal&quot; have the same meaning in these Terms.</p><span class="src" tabindex="0" aria-label="Sources"><span class="src-dot"></span><span class="src-pop"><em>Drawn from</em><ul><li>proposal/terms-and-conditions.md</li></ul></span></span></div>
+<div class="blk blk-understanding understanding" data-block="1" ><h3>ROLE OF TAAJEEL</h3><p>Taajeel will carry out the services set out in the &quot;Letter&quot; and/or &quot;Proposal&quot; and will not be obliged to provide any other advice or services unless it expressly agrees to do so. It will not be responsible for providing other specialist advice (such as on legal, regulatory, accounting, Zakat, or taxation matters), building certain infrastructure that the Client may require or set specifications (such as systems, servers, equipment, programs, etc), or services which the Client has agreed to provide or would usually provide (or which are being provided or would usually be provided by a third party), nor will it be responsible for any due diligence beyond the scope agreed in the &quot;Letter&quot; and/or &quot;Proposal&quot;. It is the Client's responsibility to consider all advice received from its other advisors, if any, and to ensure that such advice is adequate for the purposes of the Assignment. Taajeel's role in connection with the Assignment must not be disclosed by the Client or announced publicly unless Taajeel agrees or is required by law or appropriate regulatory authority.</p><span class="src" tabindex="0" aria-label="Sources"><span class="src-dot"></span><span class="src-pop"><em>Drawn from</em><ul><li>proposal/terms-and-conditions.md</li></ul></span></span></div>
+<div class="blk blk-understanding understanding" data-block="2" ><h3>AUTHORITY</h3><p><code><mark class="to-confirm"><span class="tc-tag">to confirm</span> the Authority clause could not be retrieved in full from the content library — insert the verbatim clause before this proposal goes out</mark></code></p><span class="src" tabindex="0" aria-label="Sources"><span class="src-dot"></span><span class="src-pop"><em>Drawn from</em><ul><li>proposal/terms-and-conditions.md</li></ul></span></span></div>
+<div class="blk blk-understanding understanding" data-block="3" ><h3>INFORMATION</h3><p><code><mark class="to-confirm"><span class="tc-tag">to confirm</span> this clause's source text uses wording this system's house style flags on review. This is standing Taajeel legal boilerplate and must not be rewritten by this system — a human should paste the verbatim INFORMATION clause from proposal/terms-and-conditions.md here unedited before the proposal goes out.</mark></code></p><span class="src" tabindex="0" aria-label="Sources"><span class="src-dot"></span><span class="src-pop"><em>Drawn from</em><ul><li>proposal/terms-and-conditions.md</li></ul></span></span></div>
+<div class="blk blk-understanding understanding" data-block="4" ><h3>CONFIDENTIALITY</h3><p>Taajeel shall not disclose to any person (other than to members of the Taajeel Group or, with the Client's consent, Taajeel's holding company (the Taajeel Group and Taajeel's holding company together the &quot;Group&quot;) or its or the holding company's professional advisers) any Confidential Information provided to Taajeel pursuant to the Assignment except in the performance of its duties and obligations hereunder or as required by law or any appropriate regulatory authority. For these purposes, &quot;Confidential Information&quot; means any information or data concerning the Client which has been provided to Taajeel by the Client that would appear to a reasonable person to be confidential or proprietary (or that the Client has indicated is confidential or proprietary) and which is not in the public domain (otherwise than as a result of a breach of these Terms by Taajeel) or was already in the possession of Taajeel.</p><p>Any advice or documentation provided by Taajeel is, unless otherwise agreed by Taajeel, solely for the benefit of the Client and may not be used or relied on by any third party without Taajeel's prior written consent. The Client agrees that it will keep confidential and will not disclose to any person (other than to its other professional advisers) advice or documentation which it receives from Taajeel except as required by law or any appropriate regulatory authority.</p><span class="src" tabindex="0" aria-label="Sources"><span class="src-dot"></span><span class="src-pop"><em>Drawn from</em><ul><li>proposal/terms-and-conditions.md</li></ul></span></span></div></div></div>
+    <footer class="page-foot"><span>Start Saudi · Powered by Taajeel</span><span class="pageno">17 / 18</span></footer>
+  </section>
+<section class="page" id="sec-terms-2"
+    data-section="terms-2" data-surface="light"
+    >
+    <header class="page-head">
+         <span class="page-title">Terms and Conditions (continued)</span>
+         <span class="lockup page-mark lockup-dark" role="img" aria-label="Start Saudi"></span>
+       </header>
+    <div class="page-body"><div class="fitbox"><div class="blk blk-understanding understanding" data-block="0" ><h3>TAAJEEL LIABILITY</h3><p>The Client agrees that, and for all circumstances, Taajeel's unforeseeable liability will not exceed total actual fees paid subject matter of the Letter and/or Proposal given that this Assignment is in effect, thus, after completion of the Project and turning in the deliverables indicated in the Letter and/or Proposal, the Client has no recourse on Taajeel for any fees paid relevant to the Assignment. Furthermore, Taajeel is entitled to renegotiate with the Client the circumstances for proper corrective actions otherwise actual costs incurred by Taajeel and Group will be subtracted from the actual fees received by Taajeel.</p><span class="src" tabindex="0" aria-label="Sources"><span class="src-dot"></span><span class="src-pop"><em>Drawn from</em><ul><li>proposal/terms-and-conditions.md</li></ul></span></span></div>
+<div class="blk blk-understanding understanding" data-block="1" ><h3>ADVERTISEMENTS</h3><p><code><mark class="to-confirm"><span class="tc-tag">to confirm</span> the Advertisements clause could not be retrieved in full from the content library — insert the verbatim clause before this proposal goes out</mark></code></p><span class="src" tabindex="0" aria-label="Sources"><span class="src-dot"></span><span class="src-pop"><em>Drawn from</em><ul><li>proposal/terms-and-conditions.md</li></ul></span></span></div>
+<div class="blk blk-understanding understanding" data-block="2" ><h3>TERMINATION</h3><p>The Agreement Duration is what is specified in the timeframe section or one year starting from the date of signing on this Proposal. The Agreement will be automatically renewed for similar period (or periods) unless an official termination letter is furnished by one party to the other 90 days before the end of the Agreement Duration. Taajeel has the right to claim additional fees for additional takes requested by the Client.</p><p>Taajeel may terminate the Assignment at any time by notice in writing if the Client commits a material breach of its obligations under these Terms or the Letter which it fails to remedy within 14 days of being requested to do so or such breach is incapable of remedy.</p><p>Any conflicts emerging from this Proposal/Engagement Letter, and for any reason will be resolved via Arbitration. Such Arbitration will take place in GCC Commercial Arbitration Centre (www.gcccac.org).</p><span class="src" tabindex="0" aria-label="Sources"><span class="src-dot"></span><span class="src-pop"><em>Drawn from</em><ul><li>proposal/terms-and-conditions.md</li></ul></span></span></div>
+<div class="blk blk-understanding understanding" data-block="3" ><h3>NOTICES</h3><p>Any notice or other document which may be given or served by either the Client or Taajeel pursuant to the Letter and/or Proposal or these Terms shall be deemed to have been duly given or served on the other party if left at or sent by first class post, electronic mail, or by fax to its registered office or to the address (or fax number) of the other party set out in the Letter and/or Proposal or to such other address (or fax number) as may have been notified by one party to the other. In the case of posting, any such notice shall be deemed to have been received 96 hours after posting. In the case of fax transmission, any such notice shall be deemed to have been received by the addressee immediately upon receipt by the sender of such machine record as indicates that the entire fax was sent to the relevant number.</p><span class="src" tabindex="0" aria-label="Sources"><span class="src-dot"></span><span class="src-pop"><em>Drawn from</em><ul><li>proposal/terms-and-conditions.md</li></ul></span></span></div>
+<div class="blk blk-understanding understanding" data-block="4" ><h3>A note on scope</h3><p>The Role of Taajeel clause disclaims responsibility for legal, regulatory, accounting, Zakat and taxation advice. This proposal confirms an activity band and advises on subsidiary versus branch structure — both sit close to that boundary. Read those sections as confirmation against MISA's own classification, not as legal or tax advice, and take independent advice on anything that turns on it.</p><span class="src" tabindex="0" aria-label="Sources"><span class="src-dot"></span><span class="src-pop"><em>Drawn from</em><ul><li>proposal/terms-and-conditions.md</li></ul></span></span></div></div></div>
+    <footer class="page-foot"><span>Start Saudi · Powered by Taajeel</span><span class="pageno">18 / 18</span></footer>
+  </section>
+</div>
+<div id="hint"></div>
+<script>
+(function(){
+  var stage = document.getElementById('stage');
+  var pages = Array.prototype.slice.call(document.querySelectorAll('.page'));
+  var bar   = document.getElementById('progress');
+  var hint  = document.getElementById('hint');
+  var i = 0, step = 0, hintT;
+
+  function fit(){
+    var s = Math.min(innerWidth/1920, innerHeight/1080);
+    stage.style.transform =
+      'translate(' + ((innerWidth-1920*s)/2) + 'px,' + ((innerHeight-1080*s)/2) + 'px) scale(' + s + ')';
+  }
+  addEventListener('resize', fit); fit();
+
+  /* Content longer than the page shrinks to fit rather than overflowing.
+     Deterministic, and it means a section never has to guess its own length. */
+  function fitBoxes(){
+    pages.forEach(function(p){
+      var box = p.querySelector('.fitbox'); if (!box) return;
+      box.style.cssText = '';
+      var avail = p.querySelector('.page-body').clientHeight;
+      if (!avail || box.scrollHeight <= avail) return;
+      /* Shrink to fit. Widening in step with the scale keeps the measure
+         constant, so it takes two or three passes to settle. The explicit
+         height is what keeps the page vertically centred — a transform does
+         not change layout size on its own. */
+      var visual = function(s){ box.style.width = (100/s) + '%'; return box.scrollHeight * s; };
+      var lo = 0.55, hi = 1;
+      for (var k = 0; k < 8; k++) {
+        var mid = (lo + hi) / 2;
+        if (visual(mid) > avail) hi = mid; else lo = mid;
+      }
+      box.style.width = (100 / lo) + '%';
+      box.style.transform = 'scale(' + lo + ')';
+      box.style.height = (box.scrollHeight * lo) + 'px';
+    });
+  }
+
+  function steps(p){ return Array.prototype.slice.call(p.querySelectorAll('.step, .tl-row')); }
+
+  function paint(){
+    pages.forEach(function(p,n){ p.classList.toggle('is-current', n===i); });
+    var p = pages[i];
+    if (p) {
+      var st = steps(p);
+      if (p.hasAttribute('data-stepped')) st.forEach(function(el,n){ el.classList.toggle('on', n<=step); });
+      else st.forEach(function(el){ el.classList.add('on'); });
+      document.title = (p.dataset.section || 'proposal') + ' — Start Saudi';
+    }
+    bar.style.width = ((i+1)/Math.max(1,pages.length)*100) + '%';
+    try { history.replaceState(null,'','#' + (pages[i] ? pages[i].id : '')); } catch(e){}
+    try { parent.postMessage({type:'deck:page', index:i, id: pages[i] && pages[i].dataset.section}, '*'); } catch(e){}
+  }
+
+  function stepCount(){ var p = pages[i]; return p && p.hasAttribute('data-stepped') ? steps(p).length : 0; }
+  function go(n, atEnd){
+    if (n < 0 || n >= pages.length) return;
+    i = n; step = atEnd ? Math.max(0, stepCount()) : (stepCount() ? 1 : 0);
+    paint(); fitBoxes();
+  }
+  function next(){
+    var c = stepCount();
+    if (c && step < c) { step++; paint(); return; }
+    go(i+1);
+  }
+  function prev(){
+    if (stepCount() && step > 1) { step--; paint(); return; }
+    go(i-1, true);
+  }
+
+  function flash(msg){
+    hint.textContent = msg; hint.classList.add('show');
+    clearTimeout(hintT); hintT = setTimeout(function(){ hint.classList.remove('show'); }, 1800);
+  }
+
+  var EDITABLE = 'h1,h2,h3,p,li,td,th,blockquote,.stat-fig,.stat-cap,.step-title,.step-text,' +
+                 '.step-dur,.tl-when,.tl-what,.cover-client,.cover-title,.sig-line';
+  function toggleEdit(){
+    var on = !document.body.classList.contains('editing');
+    document.body.classList.toggle('editing', on);
+    document.querySelectorAll(EDITABLE).forEach(function(el){
+      if (on) el.setAttribute('contenteditable','true'); else el.removeAttribute('contenteditable');
+    });
+    flash(on ? 'Edit mode on — click any text' : 'Edit mode off');
+  }
+
+  addEventListener('keydown', function(e){
+    if (document.body.classList.contains('editing') && e.key !== 'Escape' &&
+        !(e.key === 'e' && (e.metaKey||e.ctrlKey))) {
+      if (e.target && e.target.isContentEditable) return;
+    }
+    switch (e.key) {
+      case 'ArrowRight': case 'ArrowDown': case ' ': case 'PageDown': e.preventDefault(); next(); break;
+      case 'ArrowLeft': case 'ArrowUp': case 'PageUp': e.preventDefault(); prev(); break;
+      case 'Home': e.preventDefault(); go(0); break;
+      case 'End': e.preventDefault(); go(pages.length-1, true); break;
+      case 'f': case 'F':
+        if (document.fullscreenElement) document.exitFullscreen();
+        else document.documentElement.requestFullscreen && document.documentElement.requestFullscreen();
+        break;
+      case 'p': case 'P': if (!e.metaKey && !e.ctrlKey) { e.preventDefault(); print(); } break;
+      case 'e': case 'E': e.preventDefault(); toggleEdit(); break;
+      case 'Escape': if (document.body.classList.contains('editing')) toggleEdit(); break;
+      default:
+        if (/^[1-9]$/.test(e.key) && stepCount()) { step = Math.min(+e.key, stepCount()); paint(); }
+    }
+  });
+
+  addEventListener('message', function(e){
+    var d = e.data || {};
+    if (d.type === 'deck:goto') {
+      var n = typeof d.index === 'number' ? d.index
+            : pages.findIndex(function(p){ return p.dataset.section === d.id; });
+      if (n >= 0) { go(n, true); markWriting(d.writing); }
+    }
+    if (d.type === 'deck:writing') markWriting(d.id);
+  });
+  function markWriting(id){
+    pages.forEach(function(p){ p.classList.toggle('is-writing', !!id && p.dataset.section === id); });
+  }
+
+  /* open on the section named in the hash, so a refresh keeps its place */
+  var h = location.hash.replace('#','');
+  if (h) { var n = pages.findIndex(function(p){ return p.id === h || p.dataset.section === h; }); if (n>=0) i = n; }
+
+  paint();
+  if (document.fonts && document.fonts.ready) document.fonts.ready.then(fitBoxes);
+  addEventListener('load', fitBoxes);
+  setTimeout(fitBoxes, 60);
+  flash('← → navigate · E edit · F fullscreen · P print');
+})();
+</script>
+</body>
+</html>

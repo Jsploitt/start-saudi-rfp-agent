@@ -18,6 +18,8 @@ import { buildSystemPrompt } from './prompt.js';
 import { getRun, newRun, type Run } from './run.js';
 import { WORKED_EXAMPLE } from './dev/worked-example.js';
 import { ROOT } from './paths.js';
+import { research } from './subagents/researcher.js';
+import { review } from './subagents/reviewer.js';
 
 const SERVER = 'startsaudi';
 const TOOLS = ['read_rfp', 'search_library', 'write_brief', 'compose_proposal', 'render_preview'];
@@ -201,17 +203,75 @@ export async function runAgent(opts: AgentOptions, inbox = new Inbox()): Promise
     void session.interrupt().catch(() => {});
   }, deadline);
 
+  /* The researcher starts the moment the RFP is understood and finishes while the
+     main agent is still searching the library. Nothing waits for it. */
+  let researching: Promise<void> | null = null;
+  const startResearch = () => {
+    if (researching || !run.rfp) return;
+    run.bus.emitEvent({ type: 'act', verb: 'Asking the researcher about the client', tool: 'researcher' });
+    researching = research(run.rfp, sessionEnv())
+      .then((found) => {
+        if (!found?.findings.length) return;
+        run.research = found.findings.map((f) => f.point);
+        run.bus.emitEvent({ type: 'research', items: found.findings.map((f) => `${f.point} (${f.basis})`) });
+        run.transcript({ t: 'research', findings: found.findings });
+        inbox.push(
+          'The researcher came back. Use what is useful and ignore what is not. Anything ' +
+            'marked "sector knowledge" or not confident is context for your own judgement, ' +
+            'not a fact to put in the document:\n' +
+            found.findings
+              .map((f) => `  - ${f.point}\n    basis: ${f.basis}${f.confident ? '' : ' (not confident)'} · use in: ${f.useItIn}`)
+              .join('\n')
+        );
+      })
+      .catch(() => {});
+  };
+  run.bus.on('event', (e) => {
+    if (e.type === 'rfp') startResearch();
+  });
+
+  let reviewed = false;
+
   try {
     for await (const msg of session) {
       run.transcript(msg);
       narrate(run, msg);
-      if (msg.type === 'result') break;
+      if (msg.type !== 'result') continue;
+
+      /* The agent thinks it is finished. Before agreeing, put a critic over it in
+         public — and then let it fix what the critic found. */
+      if (!reviewed && run.sectionCount() >= 3) {
+        reviewed = true;
+        run.bus.emitEvent({ type: 'act', verb: 'Asking the reviewer to check this against the requirements', tool: 'reviewer' });
+        const found = await review(run, sessionEnv());
+        run.transcript({ t: 'review', review: found });
+
+        if (found?.findings.length) {
+          run.bus.emitEvent({ type: 'review', findings: found.findings });
+          inbox.push(
+            `The reviewer read the draft against the RFP and found ${found.findings.length} ` +
+              `thing${found.findings.length === 1 ? '' : 's'}. Its verdict: ${found.verdict}\n\n` +
+              found.findings
+                .map((f) => `  - [${f.severity}] ${f.requirement}\n    ${f.note}\n    section: ${f.sectionId}`)
+                .join('\n') +
+              '\n\nFix the blocking and material ones by recomposing only the sections named. ' +
+              'Say which you are changing and why. If you disagree with a finding, say so and ' +
+              'leave it — but say it out loud rather than ignoring it.'
+          );
+          continue;
+        }
+
+        run.bus.emitEvent({ type: 'review', findings: [] });
+        if (found) run.bus.emitEvent({ type: 'agent', text: `Reviewer: ${found.verdict}` });
+      }
+      break;
     }
   } catch (e) {
     run.bus.emitEvent({ type: 'error', message: (e as Error).message });
   } finally {
     clearTimeout(timer);
     inbox.close();
+    if (researching) await researching;
   }
 
   completeFromFallback(run);
