@@ -83,7 +83,7 @@ html, body {
 .msg { flex:0 0 auto; padding:13px 16px; border-radius:var(--ss-radius-lg);
   line-height:var(--ss-leading-normal); max-width:92%; white-space:pre-wrap; }
 .msg.agent { max-height:8.2em; overflow:hidden; position:relative; cursor:pointer; }
-.msg.agent::after { content:; position:absolute; inset-inline:0; inset-block-end:0; height:2.4em;
+.msg.agent::after { content:""; position:absolute; inset-inline:0; inset-block-end:0; height:2.4em;
   background:linear-gradient(transparent, var(--ss-navy-raised)); pointer-events:none; }
 .msg.agent.open { max-height:none; cursor:default; }
 .msg.agent.open::after { display:none; }

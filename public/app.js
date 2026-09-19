@@ -132,6 +132,9 @@
           e.sections + ' sections in ' + Math.round(e.elapsedMs / 1000) + 's');
         $('export').disabled = false;
         $('openfull').disabled = false;
+        /* The document being finished is the middle of the demo, not the end —
+           the session stays open for changes. Say so. */
+        $('answer').placeholder = 'Ask for a change — "give me the executive summary in Arabic"';
         stopTick();
         break;
     }

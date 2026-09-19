@@ -35,8 +35,10 @@ export type AgentOptions = {
   rfpPath: string;
   /** Unattended: answer the agent's questions from the brief rather than waiting. */
   unattended?: boolean;
-  /** Hard stop. The document is completed from the fallback after this. */
+  /** Hard stop on reaching a finished document. Cleared once one exists. */
   deadlineMs?: number;
+  /** Keep the session alive after the document is done, for follow-up changes. */
+  stayOpen?: boolean;
   maxTurns?: number;
   model?: string;
 };
@@ -189,7 +191,7 @@ export async function runAgent(opts: AgentOptions, inbox = new Inbox()): Promise
       disallowedTools: BUILTINS, // five tools, and nowhere unrehearsed to wander
       permissionMode: 'bypassPermissions',
       allowDangerouslySkipPermissions: true,
-      maxTurns: opts.maxTurns ?? 90,
+      maxTurns: opts.maxTurns ?? 140, // the document, the reviewer fixes, then the live changes
       model: opts.model ?? 'claude-sonnet-5',
       cwd: ROOT,
       env: sessionEnv(),
@@ -231,6 +233,20 @@ export async function runAgent(opts: AgentOptions, inbox = new Inbox()): Promise
   });
 
   let reviewed = false;
+  let finished = false;
+
+  /** The document is complete. In the room, that is the middle of the demo, not the end. */
+  const announceDone = () => {
+    completeFromFallback(run);
+    const url = run.writeProposal();
+    run.bus.emitEvent({ type: 'preview', url });
+    run.bus.emitEvent({
+      type: 'done',
+      url,
+      sections: run.sectionCount(),
+      elapsedMs: Date.now() - run.started,
+    });
+  };
 
   try {
     for await (const msg of session) {
@@ -264,7 +280,23 @@ export async function runAgent(opts: AgentOptions, inbox = new Inbox()): Promise
         run.bus.emitEvent({ type: 'review', findings: [] });
         if (found) run.bus.emitEvent({ type: 'agent', text: `Reviewer: ${found.verdict}` });
       }
-      break;
+
+      /* First time through: the document is done. The deadline was there to
+         guarantee a finished document, so it stops mattering now. */
+      if (!finished) {
+        finished = true;
+        clearTimeout(timer);
+        announceDone();
+        if (!opts.stayOpen) break;
+        run.bus.emitEvent({ type: 'status', text: 'Ready — ask for a change' });
+        continue;
+      }
+
+      /* A follow-up turn landed: the client asked for something after the fact.
+         Whatever it changed is already rendered; just refresh and stay open. */
+      const url = run.writeProposal();
+      run.bus.emitEvent({ type: 'preview', url });
+      run.bus.emitEvent({ type: 'status', text: 'Ready — ask for a change' });
     }
   } catch (e) {
     run.bus.emitEvent({ type: 'error', message: (e as Error).message });
@@ -274,14 +306,6 @@ export async function runAgent(opts: AgentOptions, inbox = new Inbox()): Promise
     if (researching) await researching;
   }
 
-  completeFromFallback(run);
-  const url = run.writeProposal();
-  run.bus.emitEvent({ type: 'preview', url });
-  run.bus.emitEvent({
-    type: 'done',
-    url,
-    sections: run.sectionCount(),
-    elapsedMs: Date.now() - run.started,
-  });
+  if (!finished) announceDone();
   return run;
 }

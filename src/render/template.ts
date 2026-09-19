@@ -271,7 +271,7 @@ body.editing [contenteditable]:focus { outline:2px solid var(--ss-green); outlin
 
 /* --- print / PDF ---------------------------------------------------------- */
 @media print {
-  html, body { overflow:visible; background:#fff; }
+  html, body { overflow:visible; background:var(--ss-white); }
   #stage { position:static; transform:none !important; width:auto; height:auto; }
   #progress, #hint { display:none; }
   .page { position:static; display:flex !important; width:1920px; height:1080px;

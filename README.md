@@ -18,34 +18,40 @@ npm run dev
 
 Then open **http://localhost:5173**.
 
-### Authentication — read this before the demo
+### Authentication
 
-The kit's `.env` carries an **organisation-scoped** API key. The API rejects those with a 400
-unless the workspace travels with them. One of these three:
+The key in `.env` works as it is — verified against this SDK version, with the key and
+without it. `.env` is gitignored, so a fresh clone has none; copy `.env.example` to `.env`
+and paste the key in, or set nothing at all and the signed-in Claude Code session is used
+instead, which also works.
+
+One failure is worth recognising because it looks alarming and is not: a 400 saying the key
+*"is not scoped to a workspace"*. That came from the **0.1.x** line of the Agent SDK, which
+this project no longer uses (see `NOTES.md`). If you ever see it — a downgrade, a different
+machine, a stale `node_modules` — the fix is one line:
 
 ```bash
-# 1. best: a workspace-scoped key
-ANTHROPIC_API_KEY=sk-ant-...
-
-# 2. the org key, with its workspace
-ANTHROPIC_API_KEY=sk-ant-...
-ANTHROPIC_WORKSPACE_ID=wrkspc_...
-
-# 3. no key at all — the signed-in Claude Code session is used
+ANTHROPIC_WORKSPACE_ID=wrkspc_...   # alongside the existing key
 ```
 
-If it is wrong you will see it within five seconds, and the message says which of the three
-to do. **Check it the morning of the demo, not in the room.**
+The error message in the UI says this itself. You do not need to pre-empt it.
 
 ### The other commands
 
 ```bash
 npm run demo                 # unattended CLI run against the sample RFP, ~4 minutes
+npm run rehearse             # drive the whole demo script in a browser, beats 1-10
 npm run record               # re-record fixtures/ from a live run
+npm run golden               # rebuild fixtures/golden-proposal.html from the cached run
 npm run shots -- <url> <dir> # screenshot every page of a rendered deck at 1920x1080
 npm run worked-example       # render proposal/worked-example.md through the block pipeline
 npm run typecheck
 ```
+
+**`npm run rehearse` is the one to run before the demo.** It starts a run, answers the gap
+questions, waits for the document, then asks for the Arabic summary and the timeline change,
+and prints how many sections each one recomposed. It takes about twelve minutes and it is
+the only way to know beats 9 and 10 still work. The server must already be running.
 
 ---
 
@@ -62,10 +68,27 @@ Eight to ten minutes. Timings are from a real run.
 | 5 | **The researcher runs** | Nothing | "Asking the researcher about the client", then two to five specifics, each labelled with its basis |
 | 6 | **The outline appears** | Nothing | 17–18 sections with a one-line intent each, before any content exists |
 | 7 | **Sections draft, one at a time** | Let it run, or page through the deck as it fills | The payoff. ~5s a section, each landing in the preview. ~90s total |
-| 8 | **The reviewer checks it, and the agent fixes** | **Second-best beat.** Say what is happening. | "The reviewer found 5 things", with severities — then the agent recomposes the named sections. On the recorded run it caught two *blocking* misses: the RFP asked about employing engineers locally and invoicing in riyals, and neither was addressed |
+| 8 | **The reviewer checks it, and the agent fixes** | **Second-best beat.** Say what is happening. | "The reviewer found 5 or 6 things", with severities and a blunt verdict — then the agent recomposes the named sections. On the recorded run it caught two *blocking* misses: the RFP asked about employing engineers locally and invoicing in riyals, and neither was addressed |
 | 9 | **Arabic** | Ask for the executive summary in Arabic | An `rtl_section`, correctly typeset, with Latin company names and numerals inline |
-| 10 | **"Change the timeline to four months"** | Ask in the chat | It recomposes only the sections that carry the date — timeline, fees, summary — and says which and why. **This is why the block architecture exists.** Do not let it regenerate the document |
+| 10 | **Change the timeline** | Ask in the chat: *"Change the timeline to four months rather than working back from 1 March. Update whatever that affects."* | It recomposes **only the sections that carry the date** — on the rehearsal, 2 of 23 — and says which and why. **This is why the block architecture exists.** Watch the outline: the two it touches light up and the other twenty-one do not move |
 | 11 | **Full screen, then the PDF** | *Full screen*, then `E` for edit mode, then *PDF* | A 1920×1080 deck; every heading, paragraph, list item and table cell editable in place; an 18-page PDF |
+
+### If it pushes back on beat 10
+
+It may. The four-month instruction contradicts what the client said earlier in the
+conversation — that the January listing date is the binding one — and the agent is built to
+name a conflict rather than comply silently. On the first rehearsal it flagged the conflict
+and stopped.
+
+**That is a good beat, not a failure.** Read its objection aloud; it is the system refusing
+to quietly produce a document it knows is wrong. Then say:
+
+> *Understood. Go ahead anyway, and say in the document that this is at our instruction and
+> that the January date is now at risk.*
+
+It proceeds on the next turn. The prompt now tells it to flag *and* act rather than wait, so
+it should make the change first time and mark the risk itself — but if it asks, the line
+above is the answer, and the pause is worth more than it costs.
 
 ### Inside the preview
 
@@ -83,12 +106,12 @@ lands better than any explanation.
 
 | Symptom | Do this |
 |---|---|
-| **400 about the API key** | Auth. See above. The message names the fix |
+| **400 about the API key** | Only happens on an old SDK. Add `ANTHROPIC_WORKSPACE_ID` to `.env`, or clear `ANTHROPIC_API_KEY` to use the signed-in session. The message says so too |
 | **It hangs before the outline** | Give it 60s. Then reload the page — the UI reattaches to the run in progress and replays everything it missed |
-| **It hangs mid-document** | There is a 9-minute deadline; when it fires, any section not reached is filled from the reference proposal and the document still completes. Say so — it is a real answer to "what happens when it fails" |
+| **It hangs mid-document** | A 9-minute deadline runs until a finished document exists; when it fires, any section not reached is filled from the reference proposal and the document still completes. It is cleared once the document is done, so the later beats are never cut off. Say so — it is a real answer to "what happens when it fails" |
 | **A section looks wrong** | Press `E` and fix it in front of them. That is the point of edit mode |
 | **Anything worse** | Restart the server with `DEMO_MODE=cached` and run it again. It replays a recorded run through the same UI with the same timings and no network at all. It is identical to watch |
-| **Worse than that** | Open `fixtures/golden-proposal.html` directly. It is a finished deck and needs nothing running |
+| **Worse than that** | Double-click `fixtures/golden-proposal.html`. A finished 18-page deck, with its own fonts and images, off the filesystem — no server, no network, no kit. Arrow keys and `E` still work. Verified from `file://`, not assumed |
 
 **The reviewer takes about 100 seconds** and the log is quiet while it thinks. That is a
 feature of what it is doing, not a stall — the document is complete at that point, so page

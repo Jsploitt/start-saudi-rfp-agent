@@ -97,7 +97,7 @@ export function createServer() {
     }
 
     inbox = new Inbox();
-    runAgent({ rfpPath, unattended: false, deadlineMs: 9 * 60_000 }, inbox)
+    runAgent({ rfpPath, unattended: false, deadlineMs: 9 * 60_000, stayOpen: true }, inbox)
       .catch((e) => run.bus.emitEvent({ type: 'error', message: (e as Error).message }))
       .finally(finish);
   });

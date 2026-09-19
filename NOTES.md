@@ -66,9 +66,18 @@ have been offered. That was the tell that the problem was below the application 
 Moving to `0.3.277` fixed it and required **zod 4**. Worth stating plainly: the published
 range in the brief points at a line of the SDK that cannot run this architecture.
 
-**The API key in the kit's `.env` is an organisation key.** The API rejects it unless
-`ANTHROPIC_WORKSPACE_ID` travels as a header. This is a hard stop with a raw 400, so it now
-explains itself. It needs settling before the room, not during it.
+**The API key in the kit's `.env` is an organisation key**, and on the 0.1.x SDK the API
+rejected it with a raw 400 unless `ANTHROPIC_WORKSPACE_ID` travelled as a header.
+
+**Corrected in Phase 4: this is not an outstanding problem.** On 0.3.277 the same key works
+untouched — tested directly, with and without it. The 400 was bound to the old SDK line, not
+to the key, and I had reported it as a hard stop to settle before the demo. It is not one.
+The handling and the error message stay in, because they cost nothing and the failure is
+unrecognisable without them, but nobody needs to chase a workspace ID.
+
+The general lesson is the one worth keeping: **two unrelated-looking failures, both
+introduced by the same wrong dependency range.** Fixing the range fixed both, and I only
+noticed the second had gone by testing it again rather than assuming.
 
 **Splitting `read_rfp` into two calls is what makes the gap-finding enforceable.**
 Deterministic extraction → the model's analysis → deterministic validation. An empty `gaps`
@@ -162,3 +171,58 @@ than hiding one.
 server refused a second run with a 409 while a previous replay was still going, and the UI
 had no way to say "abandon it". `force: true` now does. The lesson is less about the flag
 than about where it was found: the second time you run the demo, not the first.
+
+---
+
+## Phase 4 — the safety net
+
+**Two of the eleven demo beats had never been able to run, and nothing said so.** Beats 9,
+10 and 11 all happen *after* the document is assembled — and `runAgent` closed the session
+the moment the agent finished. Every phase gate passed, the typecheck passed, the cached
+replay passed, and the closer was structurally impossible. It took writing the rehearsal
+script to find it, because every check until then had stopped at "the document is complete".
+The fix was small (`stayOpen`, and clearing the deadline once a finished document exists);
+the lesson is that **a gate that ends where the demo's midpoint is will never test its
+second half.**
+
+**A shell-escaping mistake silently broke a CSS rule, and the same mistake broke two more
+scripts.** Patching files with `node -e "…"` through the Bash tool mangled `content:""` into
+`content:;`, which is invalid, so the pseudo-element never generated and the fade on
+clamped chat messages never rendered. Two later heredocs lost backslashes the same way. None
+of it failed loudly: invalid CSS declarations are dropped silently, and the JS selector error
+only surfaced because Playwright happened to throw. **Anything with quotes or backslashes now
+goes through the Write tool, not a shell string.** The time lost to escaping exceeded the
+time saved by not opening an editor, several times over.
+
+**The last-resort fallback did not work, and it is the one nobody tests.**
+`fixtures/golden-proposal.html` was a copy of a run's `proposal.html`, which references
+`/assets/...` because it is served from `/runs/...`. Opened by double-clicking it — exactly
+what the run book said to do when everything else has failed — every image and font 404s. It
+now renders with `../public/` and is verified from a real `file://` load: 18 pages, fonts
+resolved, zero failed requests. A fallback that has never been exercised in the mode it
+exists for is not a fallback.
+
+**The agent refused the closer, and it was right to.** Asked to change the timeline to four
+months, it answered: *"this instruction conflicts with what the client actually told us, and
+I want to flag that rather than quietly comply"* — the client had said the January listing
+date was binding. Correct by the system prompt's own standards, and fatal to the demo, which
+needs the change to land. The fix is not to make it more obedient: it now flags the conflict
+**and acts**, stating the assumption and marking in the document what is at risk. The
+prompt's new line is the point — *"a flagged change that was not made is just a document
+that did not get updated."*
+
+Worth keeping as a beat either way. A system that pauses to say "this contradicts what you
+told me" is more convincing than one that complies, and the recovery is one sentence.
+
+**The targeted edit does what the architecture promised.** After confirmation, the timeline
+change recomposed **two sections out of twenty-three** — Time frame, and the Arabic summary,
+which carries the 7 December date. It left the fee section alone, correctly: a four-month
+plan changes no figure on a page whose figures are all `[TO CONFIRM]`. Watching twenty-one
+outline rows stay still is the whole argument for typed blocks over generated documents.
+
+**One correction to something I reported as a blocker.** I told the user the organisation
+API key was a hard stop needing a workspace id before the demo. On the current SDK it works
+untouched — tested with the key and without it. The 400 belonged to the 0.1.x line, the same
+wrong dependency range that caused the `tool_use ids must be unique` failure. One bad version
+range produced two unrelated-looking blockers, and I only noticed the second had gone because
+I retested it instead of assuming.

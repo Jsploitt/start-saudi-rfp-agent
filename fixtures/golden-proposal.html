@@ -3,8 +3,8 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Meridian Flow Systems Ltd — Start Saudi proposal</title>
-<link rel="icon" href="/assets/favicon.png">
+<title>Meridian Flow Systems Ltd — proposal</title>
+<link rel="icon" href="../public/assets/favicon.png">
 <style>/* ==========================================================================
    Start Saudi — design tokens
    Generated 2026-09-17. Machine-readable twin: brand/tokens.json
@@ -175,26 +175,26 @@
 /* The pattern is a real asset, not a CSS effect. Tile brand/assets/pattern-navy.png. */
 .ss-pattern {
   background-color: var(--ss-navy);
-  background-image: url("/assets/pattern-navy.png");
+  background-image: url("../public/assets/pattern-navy.png");
   background-repeat: repeat;
 }
 
 /* --- fonts: self-hosted so the deck renders identically offline ----------- */
-@font-face { font-family:"Montserrat"; src:url("/assets/fonts/montserrat.woff2") format("woff2");
+@font-face { font-family:"Montserrat"; src:url("../public/assets/fonts/montserrat.woff2") format("woff2");
   font-weight:100 900; font-style:normal; font-display:swap; }
-@font-face { font-family:"IBM Plex Sans Arabic"; src:url("/assets/fonts/plex-arabic-400.woff2") format("woff2");
+@font-face { font-family:"IBM Plex Sans Arabic"; src:url("../public/assets/fonts/plex-arabic-400.woff2") format("woff2");
   font-weight:400; font-style:normal; font-display:swap;
   unicode-range:U+0600-06FF,U+0750-077F,U+0870-088E,U+0890-0891,U+0897-08E1,U+08E3-08FF,
     U+200C-200E,U+2010-2011,U+204F,U+2E41,U+FB50-FDFF,U+FE70-FE74,U+FE76-FEFC; }
-@font-face { font-family:"IBM Plex Sans Arabic"; src:url("/assets/fonts/plex-arabic-600.woff2") format("woff2");
+@font-face { font-family:"IBM Plex Sans Arabic"; src:url("../public/assets/fonts/plex-arabic-600.woff2") format("woff2");
   font-weight:600; font-style:normal; font-display:swap;
   unicode-range:U+0600-06FF,U+0750-077F,U+0870-088E,U+0890-0891,U+0897-08E1,U+08E3-08FF,
     U+200C-200E,U+2010-2011,U+204F,U+2E41,U+FB50-FDFF,U+FE70-FE74,U+FE76-FEFC; }
 /* Latin subset of the same family, so company names, numerals and dates inside an
    Arabic paragraph set in a matched face instead of falling through to the system. */
-@font-face { font-family:"IBM Plex Sans Arabic"; src:url("/assets/fonts/plex-latin-400.woff2") format("woff2");
+@font-face { font-family:"IBM Plex Sans Arabic"; src:url("../public/assets/fonts/plex-latin-400.woff2") format("woff2");
   font-weight:400; font-style:normal; font-display:swap; unicode-range:U+0000-00FF,U+2000-206F,U+2212; }
-@font-face { font-family:"IBM Plex Sans Arabic"; src:url("/assets/fonts/plex-latin-600.woff2") format("woff2");
+@font-face { font-family:"IBM Plex Sans Arabic"; src:url("../public/assets/fonts/plex-latin-600.woff2") format("woff2");
   font-weight:600; font-style:normal; font-display:swap; unicode-range:U+0000-00FF,U+2000-206F,U+2212; }
 
 *, *::before, *::after { box-sizing:border-box; }
@@ -232,8 +232,8 @@ html, body { margin:0; padding:0; height:100%; overflow:hidden; background:var(-
   background-repeat:no-repeat;
   background-size:calc(var(--lw) * 1080 / 870) auto;
   background-position:calc(var(--lw) * -105 / 870) calc(var(--lw) * -402 / 870); }
-.lockup-light { background-image:url("/assets/mark-light.png"); }  /* light ink, on dark */
-.lockup-dark  { background-image:url("/assets/mark-color.png"); }  /* dark ink, on light */
+.lockup-light { background-image:url("../public/assets/mark-light.png"); }  /* light ink, on dark */
+.lockup-dark  { background-image:url("../public/assets/mark-color.png"); }  /* dark ink, on light */
 .page-mark { --lw:152px; opacity:.92; }
 
 .page-body { flex:1 1 auto; min-height:0; display:flex; align-items:center; }
@@ -289,7 +289,7 @@ mark.to-confirm .tc-tag { font-size:.62em; text-transform:uppercase; font-weight
 /* --- cover ---------------------------------------------------------------- */
 .page-cover { padding:110px 132px; background:var(--ss-navy); position:relative; overflow:hidden; }
 .page-cover::before { content:""; position:absolute; inset:0;
-  background-image:url("/assets/pattern-navy.png"); background-size:760px; opacity:.22; }
+  background-image:url("../public/assets/pattern-navy.png"); background-size:760px; opacity:.22; }
 .page-cover::after { content:""; position:absolute; inset-block-end:-380px; inset-inline-end:-260px;
   width:900px; height:900px; border-radius:var(--ss-radius-full);
   background:radial-gradient(circle, color-mix(in srgb, var(--ss-green) 16%, transparent), transparent 62%); }
@@ -313,7 +313,7 @@ mark.to-confirm .tc-tag { font-size:.62em; text-transform:uppercase; font-weight
 
 .page[data-surface="dark"]:not(.page-cover) { position:relative; }
 .page[data-surface="dark"]:not(.page-cover)::before { content:""; position:absolute; inset:0;
-  background-image:url("/assets/pattern-navy.png"); background-size:900px; opacity:.13; pointer-events:none; }
+  background-image:url("../public/assets/pattern-navy.png"); background-size:900px; opacity:.13; pointer-events:none; }
 .page[data-surface="dark"] > * { position:relative; z-index:1; }
 
 /* --- statement ------------------------------------------------------------ */

@@ -8,7 +8,7 @@
  */
 
 import 'dotenv/config';
-import { copyFileSync, mkdirSync, writeFileSync } from 'node:fs';
+import { mkdirSync, writeFileSync } from 'node:fs';
 import { isAbsolute, join } from 'node:path';
 import { existsSync } from 'node:fs';
 import { runAgent, Inbox } from '../agent.js';
@@ -17,6 +17,7 @@ import { FIXTURES_DIR, KIT_DIR, ROOT } from '../paths.js';
 import { isMain } from '../isMain.js';
 import type { Stamped } from '../events.js';
 import type { CachedRun } from '../cached.js';
+import { writeGolden } from './golden.js';
 
 /** The answers a presenter would type. Recorded so the replay has both sides. */
 const SCRIPTED_ANSWER = [
@@ -77,7 +78,7 @@ if (isMain(import.meta.url)) {
     brief: run.brief ?? undefined,
   };
   writeFileSync(join(FIXTURES_DIR, 'cached-run.json'), JSON.stringify(cache, null, 2), 'utf8');
-  copyFileSync(join(run.dir, 'proposal.html'), join(FIXTURES_DIR, 'golden-proposal.html'));
+  writeGolden(run.orderedSections(), run.rfp?.client.name);
 
   console.log(
     `\nRecorded ${events.length} events and ${Object.keys(sections).length} sections.\n` +
