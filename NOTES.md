@@ -226,3 +226,32 @@ untouched — tested with the key and without it. The 400 belonged to the 0.1.x 
 wrong dependency range that caused the `tool_use ids must be unique` failure. One bad version
 range produced two unrelated-looking blockers, and I only noticed the second had gone because
 I retested it instead of assuming.
+
+### Phase 4, after the retest
+
+**The flag-and-act prompt change worked, and produced a better answer than compliance would
+have.** Given the same conflicting instruction that it refused the first time, the agent now
+says what it is doing and does it: *"target date is 19 September 2026 + 4 months =
+mid-January 2027, with 1 March 2027 kept visible as the client's own stated deadline and the
+gap between the two named rather than silently absorbed."* That is the brand's move — state
+the change, name the boundary, do not smooth it over — and no part of it was scripted.
+
+**Propagation turns out to be content-aware, not id-based, and that is the stronger
+result.** On the first rehearsal the timeline change updated the Arabic summary as well,
+because that summary carried a *derived* date (7 December 2026, documents-complete) which had
+moved. On the retest it left the Arabic summary alone — because that one carried only the
+client's own target date (1 مارس 2027), which had not moved. Two different answers, both
+correct, from reading what each section actually contains. A rule that recomposed "every
+section mentioning a date" would have been wrong once out of twice.
+
+**Arabic can break the tool call once.** The compose call for the `rtl_section` failed with
+malformed JSON — the agent's own diagnosis was *"the Arabic text likely broke escaping"* —
+and it retried successfully on its own. Self-recovering, but it costs a minute, and beat 9
+therefore takes two to three minutes rather than the thirty seconds a section normally takes.
+Worth knowing before standing in front of it, so the pause reads as the agent working rather
+than as a hang.
+
+**The section count varies run to run: 15, 17, 18.** The outline is written after the gaps
+are known, so a run that surfaces different gaps plans a different document. That is the
+system working as designed, but it means no fixed number belongs in the run book, and any
+check that asserts one will be flaky.

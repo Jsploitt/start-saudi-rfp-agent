@@ -66,11 +66,11 @@ Eight to ten minutes. Timings are from a real run.
 | 3 | **It notices what the RFP doesn't say** | **Stop here.** This is the beat. | Six or seven gaps, each with its consequence. The one to read aloud is the activity classification: services means no statutory minimum capital and a benchmark around SAR 500,000; retail or wholesale trading at 100% foreign ownership is cited at SAR 30,000,000. Nobody asked the question and it is sixty times the number |
 | 4 | **You answer** | Type into the box. Anything reasonable; there is a scripted answer in `src/dev/record.ts` you can paste | Your answer appears; the agent adjusts |
 | 5 | **The researcher runs** | Nothing | "Asking the researcher about the client", then two to five specifics, each labelled with its basis |
-| 6 | **The outline appears** | Nothing | 17–18 sections with a one-line intent each, before any content exists |
+| 6 | **The outline appears** | Nothing | 15–18 sections with a one-line intent each, before any content exists |
 | 7 | **Sections draft, one at a time** | Let it run, or page through the deck as it fills | The payoff. ~5s a section, each landing in the preview. ~90s total |
 | 8 | **The reviewer checks it, and the agent fixes** | **Second-best beat.** Say what is happening. | "The reviewer found 5 or 6 things", with severities and a blunt verdict — then the agent recomposes the named sections. On the recorded run it caught two *blocking* misses: the RFP asked about employing engineers locally and invoicing in riyals, and neither was addressed |
-| 9 | **Arabic** | Ask for the executive summary in Arabic | An `rtl_section`, correctly typeset, with Latin company names and numerals inline |
-| 10 | **Change the timeline** | Ask in the chat: *"Change the timeline to four months rather than working back from 1 March. Update whatever that affects."* | It recomposes **only the sections that carry the date** — on the rehearsal, 2 of 23 — and says which and why. **This is why the block architecture exists.** Watch the outline: the two it touches light up and the other twenty-one do not move |
+| 9 | **Arabic** | Ask for the executive summary in Arabic. Allow two to three minutes — it sources the summary first, and the Arabic text sometimes breaks the tool call once and is retried automatically | An `rtl_section`, correctly typeset, with Latin company names and numerals inline |
+| 10 | **Change the timeline** | Ask in the chat: *"Change the timeline to four months rather than working back from 1 March. Update whatever that affects."* | It recomposes **only the sections that carry the date** — on the rehearsals, 1-2 sections out of 15-23 — and says which and why. **This is why the block architecture exists.** Watch the outline: the ones it touches light up and the rest do not move |
 | 11 | **Full screen, then the PDF** | *Full screen*, then `E` for edit mode, then *PDF* | A 1920×1080 deck; every heading, paragraph, list item and table cell editable in place; an 18-page PDF |
 
 ### If it pushes back on beat 10
@@ -86,9 +86,17 @@ to quietly produce a document it knows is wrong. Then say:
 > *Understood. Go ahead anyway, and say in the document that this is at our instruction and
 > that the January date is now at risk.*
 
-It proceeds on the next turn. The prompt now tells it to flag *and* act rather than wait, so
-it should make the change first time and mark the risk itself — but if it asks, the line
-above is the answer, and the pause is worth more than it costs.
+The prompt now tells it to flag *and* act. On the retest it did exactly that, first time, and
+its reconciliation was better than a scripted one would have been — it worked four months
+from today, landed on mid-January 2027, kept 1 March visible as the client's own deadline and
+named the gap between them. If it ever does stop and ask, the line above is the answer, and
+the pause is worth more than it costs.
+
+**One thing not to promise in advance:** which *other* sections it will touch. It updates
+what actually carries the changed date, and that differs by run — on one rehearsal the Arabic
+summary moved too, because it carried a derived date; on another it correctly did not,
+because it carried only the client's unchanged target date. Say "watch which ones it picks",
+not "it will update three".
 
 ### Inside the preview
 
