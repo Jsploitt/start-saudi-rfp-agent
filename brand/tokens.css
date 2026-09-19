@@ -1,0 +1,179 @@
+/* ==========================================================================
+   Start Saudi — design tokens
+   Generated 2026-09-17. Machine-readable twin: brand/tokens.json
+   --------------------------------------------------------------------------
+   PROVENANCE, READ THIS FIRST
+   The authoritative source is "startsaudi brand guidelines.pdf" (Google Drive
+   id 1mbj4j30JoA5iQ1nY0I02KIVzxKVZsCSP, 76 MB). It could NOT be read in this
+   session: Drive returns an empty text layer for it (it is a flattened,
+   image-only export) and fetching the raw bytes is blocked by this
+   environment's egress policy.
+   Every value marked MEASURED below was therefore obtained by pixel-sampling
+   the official web-ready PNGs now sitting in brand/assets/. Those are real
+   exports of the identity, so the hex values are exact — but they have not
+   been reconciled against the guidelines document, and the guidelines win
+   wherever the two disagree. See OPEN-QUESTIONS.md Q1.
+   Every value marked DERIVED appears in no source at all and exists purely so
+   a build has something consistent to reach for. Replace on sight.
+   ========================================================================== */
+
+:root {
+  /* --- Core palette ----------------------------------------------------- */
+
+  /* MEASURED — favicon.png icon field (725,304 px), mark-color.png wordmark
+     ink (30,722 px), pattern-navy.png base field (790,649 px). The primary dark. */
+  --ss-navy: #10192A;
+
+  /* MEASURED — logo-stacked-dark.png wordmark ink (37,410 px).
+     DISCREPANCY: the stacked lockup inks the wordmark 1–2 points per channel
+     off the horizontal lockup's #10192A. Almost certainly export drift, not a
+     second token. Standardise on --ss-navy. See OPEN-QUESTIONS.md Q2. */
+  --ss-navy-alt: #0F172B;
+
+  /* MEASURED — pattern-navy.png, the lighter of the pattern's two flat tones
+     (341,279 px). The pattern is built from exactly two colours, this and
+     --ss-navy. Reuse it as the card / raised-surface tone on navy. */
+  --ss-navy-raised: #14243E;
+
+  /* MEASURED — light end of the mark's gradient, present in every asset.
+     The brand's single accent. 11.22:1 on --ss-navy. */
+  --ss-green: #27EAA6;
+
+  /* MEASURED — dark end of the mark's gradient. 9.80:1 on white, which makes
+     it the only safe green for text on light surfaces. */
+  --ss-green-deep: #004D43;
+
+  /* MEASURED — reversed lockup ink (mark-light.png, 34,472 px) and the power
+     glyph inside the mark. A green-tinted white. Deliberately NOT #FFFFFF. */
+  --ss-cream: #EBFFF6;
+
+  /* DERIVED — no source shows the light page field; the light-background
+     lockups ship on transparency. Confirm white vs cream. */
+  --ss-white: #FFFFFF;
+
+  /* --- Neutrals --------------------------------------------------------- */
+  /* DERIVED IN FULL — no grey ramp exists in any source reachable from this
+     session. Interpolated on the navy hue between --ss-navy and white so that
+     a build is at least internally consistent. Replace wholesale. */
+  --ss-neutral-50:  #F5F7FA;
+  --ss-neutral-100: #E8ECF2;
+  --ss-neutral-200: #D1D8E3;
+  --ss-neutral-300: #AAB5C6;
+  --ss-neutral-400: #7C8AA0;
+  --ss-neutral-500: #586780;
+  --ss-neutral-600: #3D4B62;
+  --ss-neutral-700: #2A3647;
+  --ss-neutral-800: #1B2739;
+  --ss-neutral-900: #10192A; /* = --ss-navy (MEASURED) */
+
+  /* --- The mark gradient ------------------------------------------------ */
+  /* MEASURED — least-squares fit of the green channel against pixel position
+     across the 48,201 gradient pixels of mark-icon.png. Axis runs 41.3° below
+     horizontal, top-left to bottom-right; darkest 0.5% of pixels average
+     exactly #004D43, lightest 0.5% average exactly #27EAA6.
+     This gradient belongs to the mark. No source uses it as a background or
+     behind text — don't be the first. */
+  --ss-gradient-mark: linear-gradient(131deg, #004D43 0%, #27EAA6 100%);
+
+  /* --- Semantic --------------------------------------------------------- */
+  /* DERIVED IN FULL — the identity defines no status colours. A proposal needs
+     at least a positive and a caution tone for callouts. See OPEN-QUESTIONS Q3. */
+  --ss-success: #27EAA6; /* reuse the brand green rather than add a second */
+  --ss-caution: #E8B93C; /* placeholder — nothing in the identity defines an amber */
+  --ss-danger:  #E2564A; /* placeholder — nothing in the identity defines a red */
+
+  /* --- Light surface (default) ------------------------------------------ */
+  --ss-bg:         var(--ss-white);
+  --ss-bg-raised:  var(--ss-neutral-50);
+  --ss-ink:        var(--ss-navy);
+  --ss-ink-muted:  var(--ss-neutral-500); /* 5.73:1 on white — AA, not AAA */
+  --ss-accent:     var(--ss-green-deep);  /* NOT --ss-green: 1.57:1 on white */
+  --ss-hairline:   var(--ss-neutral-200);
+
+  /* --- Typography ------------------------------------------------------- */
+  /* SUBSTITUTE, NOT SPECIFIED. The real typeface could not be determined —
+     see typography.md for the glyph-matching evidence. Montserrat is the
+     closest freely available face that carries both the hairline weight the
+     "START" lockup needs and the heavy weight "SAUDI" needs. */
+  --ss-font-display: "Montserrat", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --ss-font-body:    "Montserrat", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --ss-font-arabic:  "IBM Plex Sans Arabic", "Noto Sans Arabic", sans-serif; /* DERIVED — see typography.md */
+  --ss-font-mono:    ui-monospace, "SF Mono", Menlo, monospace; /* DERIVED */
+
+  /* DERIVED — no type scale is available. A 1.25 (major third) ramp on a
+     16px base, which suits a document more than a landing page. */
+  --ss-text-xs:   0.75rem;   /* 12px */
+  --ss-text-sm:   0.875rem;  /* 14px */
+  --ss-text-base: 1rem;      /* 16px */
+  --ss-text-lg:   1.25rem;   /* 20px */
+  --ss-text-xl:   1.5625rem; /* 25px */
+  --ss-text-2xl:  1.953rem;  /* 31px */
+  --ss-text-3xl:  2.441rem;  /* 39px */
+  --ss-text-4xl:  3.052rem;  /* 49px */
+
+  --ss-leading-tight:  1.15;
+  --ss-leading-snug:   1.3;
+  --ss-leading-normal: 1.55;
+  --ss-leading-loose:  1.7;
+
+  /* MEASURED (as behaviour, not as a number): in both lockups the wordmark is
+     tracked out so that "START" and "SAUDI" set to exactly the same width —
+     502 px each in the 1080 px export. Wide letter-spacing on the light weight
+     is a real characteristic of this identity, so display type should carry it. */
+  --ss-tracking-display: 0.08em;
+  --ss-tracking-normal:  0;
+
+  /* --- Space, radius, shadow -------------------------------------------- */
+  /* DERIVED — 4px base scale. Nothing in any source defines spacing. */
+  --ss-space-1: 0.25rem;
+  --ss-space-2: 0.5rem;
+  --ss-space-3: 0.75rem;
+  --ss-space-4: 1rem;
+  --ss-space-6: 1.5rem;
+  --ss-space-8: 2rem;
+  --ss-space-12: 3rem;
+  --ss-space-16: 4rem;
+
+  /* MEASURED as a proportion: the favicon's rounded square reaches its left
+     edge at y = 251 of 1080, so the corner radius is 23.2% of the side — an
+     app-icon "squircle" radius. Everything else here is DERIVED. */
+  --ss-radius-sm:   4px;
+  --ss-radius-md:   8px;
+  --ss-radius-lg:   16px;
+  --ss-radius-icon: 23%;
+  --ss-radius-full: 999px;
+
+  /* DERIVED — tinted with the navy hue rather than neutral black. */
+  --ss-shadow-sm: 0 1px 2px rgba(16, 25, 42, 0.06);
+  --ss-shadow-md: 0 4px 12px rgba(16, 25, 42, 0.10);
+  --ss-shadow-lg: 0 12px 32px rgba(16, 25, 42, 0.14);
+}
+
+/* --- Dark surface --------------------------------------------------------
+   Not a "dark mode" so much as the brand's own native register: the favicon,
+   the pattern and the reversed lockup all live on navy. Apply with
+   <body data-surface="dark"> or a wrapper element. */
+[data-surface="dark"],
+.ss-surface-dark {
+  --ss-bg:        var(--ss-navy);
+  --ss-bg-raised: var(--ss-navy-raised);
+  --ss-ink:       var(--ss-cream);
+  --ss-ink-muted: var(--ss-neutral-300); /* 8.48:1 on navy */
+  --ss-accent:    var(--ss-green);       /* 11.22:1 on navy */
+  --ss-hairline:  rgba(235, 255, 246, 0.14);
+}
+
+body {
+  background: var(--ss-bg);
+  color: var(--ss-ink);
+  font-family: var(--ss-font-body);
+  font-size: var(--ss-text-base);
+  line-height: var(--ss-leading-normal);
+}
+
+/* The pattern is a real asset, not a CSS effect. Tile brand/assets/pattern-navy.png. */
+.ss-pattern {
+  background-color: var(--ss-navy);
+  background-image: url("assets/pattern-navy.png");
+  background-repeat: repeat;
+}
