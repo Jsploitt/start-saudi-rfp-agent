@@ -7,6 +7,17 @@
   var started = null;
   var frameReady = false;
   var outline = [];
+  var eventSource = null;
+  var sectionsDone = 0;
+
+  /* ---------- status banner ------------------------------------------------ */
+
+  function setState(kind, text) {
+    var el = $('state');
+    el.className = 'pill state-' + kind;
+    el.textContent = text;
+    el.hidden = false;
+  }
 
   /* ---------- starting a run ---------------------------------------------- */
 
@@ -17,6 +28,9 @@
     $('chat').hidden = false;
     $('answerForm').hidden = false;
     $('elapsed').hidden = false;
+    $('stop').hidden = false;
+    $('restart').hidden = false;
+    setState('working', 'Working…');
     tick();
 
     fetch('/api/run', isForm ? { method: 'POST', body: body }
@@ -58,13 +72,13 @@
   /* ---------- the event stream -------------------------------------------- */
 
   function listen() {
-    var es = new EventSource('/api/events');
-    es.onmessage = function (m) {
+    eventSource = new EventSource('/api/events');
+    eventSource.onmessage = function (m) {
       var e;
       try { e = JSON.parse(m.data); } catch (_) { return; }
       handle(e);
     };
-    es.onerror = function () { /* EventSource retries on its own */ };
+    eventSource.onerror = function () { /* EventSource retries on its own */ };
   }
 
   function handle(e) {
@@ -78,11 +92,15 @@
       case 'question':
         say('question', 'Agent asks', e.text);
         logRow('question', 'Asked the client about the gaps');
+        setState('waiting', 'Waiting for your answer');
+        pulseAnswer();
         $('answer').focus();
         break;
 
       case 'answer':
-        say('you', 'You', e.text); break;
+        say('you', 'You', e.text);
+        setState('working', 'Working…');
+        break;
 
       case 'rfp':
         showRfp(e.analysis);
@@ -103,6 +121,7 @@
 
       case 'section:done':
         mark(e.id, 'done');
+        sectionsDone = e.index;
         logRow('section:done', e.title, 'page ' + e.index + ' of ' + e.total);
         $('progress').hidden = false;
         $('progress').textContent = e.index + ' / ' + e.total;
@@ -125,7 +144,10 @@
 
       case 'warn': logRow('warn', e.text); break;
       case 'error': logRow('error', e.message); break;
-      case 'status': logRow('status', e.text); break;
+      case 'status':
+        logRow('status', e.text);
+        setState('working', e.text);
+        break;
 
       case 'done':
         logRow('done', 'Finished',
@@ -135,7 +157,17 @@
         /* The document being finished is the middle of the demo, not the end —
            the session stays open for changes. Say so. */
         $('answer').placeholder = 'Ask for a change — "give me the executive summary in Arabic"';
+        setState('ready', 'Ready — ask for a change');
         stopTick();
+        break;
+
+      case 'stopped':
+        say('agent', 'Agent', 'Stopped — the document is as far as it got.');
+        logRow('stopped', 'Stopped by you');
+        setState('stopped', 'Stopped');
+        stopTick();
+        $('stop').disabled = true;
+        if (sectionsDone > 0) { $('export').disabled = false; $('openfull').disabled = false; }
         break;
     }
   }
@@ -150,13 +182,51 @@
     w.textContent = who;
     el.appendChild(w);
     el.appendChild(document.createTextNode(text));
+    if (kind === 'question') {
+      var hint = document.createElement('span');
+      hint.className = 'msg-hint';
+      hint.textContent = '↓ answer below';
+      el.appendChild(hint);
+    }
     if (kind === 'agent') el.onclick = function () { el.classList.add('open'); };
     var chat = $('chat');
     chat.appendChild(el);
     chat.scrollTop = chat.scrollHeight;
   }
 
+  function pulseAnswer() {
+    var form = $('answerForm');
+    form.classList.remove('pulse');
+    void form.offsetWidth; /* restart the animation */
+    form.classList.add('pulse');
+  }
+
+  /* Repeated rows of the same kind and headline (three "Checking the library"
+     calls in a row) collapse into one, with a counter and a merged detail list,
+     instead of stacking near-identical lines down the timeline. */
+  var lastRow = null;
+  var lastRowKey = null;
+
   function logRow(kind, what, sub) {
+    var key = kind + '' + what;
+    if (lastRow && lastRowKey === key) {
+      var count = (Number(lastRow.dataset.count) || 1) + 1;
+      lastRow.dataset.count = String(count);
+      var badge = lastRow.querySelector('.count');
+      if (!badge) {
+        badge = document.createElement('span');
+        badge.className = 'count';
+        lastRow.querySelector('.what b').appendChild(badge);
+      }
+      badge.textContent = ' ×' + count;
+      if (sub) {
+        var list = lastRow.querySelector('.sub');
+        if (list) { list.textContent += '  ·  ' + sub; list.title = list.textContent; }
+      }
+      lastRow.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+      return;
+    }
+
     var li = document.createElement('li');
     li.className = 'ev-' + kind;
     var t = document.createElement('span');
@@ -179,6 +249,8 @@
     var log = $('log');
     log.appendChild(li);
     li.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+    lastRow = li;
+    lastRowKey = key;
   }
 
   function showRfp(a) {
@@ -279,6 +351,62 @@
     if (url) window.open(url, '_blank');
   };
 
+  /* ---------- stop / restart ------------------------------------------------ */
+
+  $('stop').onclick = function () {
+    $('stop').disabled = true;
+    setState('working', 'Stopping…');
+    fetch('/api/stop', { method: 'POST' }).catch(function () {});
+  };
+
+  $('restart').onclick = function () {
+    $('restart').hidden = true;
+    $('restartConfirm').hidden = false;
+  };
+  $('restartNo').onclick = function () {
+    $('restartConfirm').hidden = true;
+    $('restart').hidden = false;
+  };
+  $('restartYes').onclick = function () {
+    $('restartConfirm').hidden = true;
+    fetch('/api/restart', { method: 'POST' })
+      .then(function () { resetUI(); })
+      .catch(function () { logRow('error', 'Could not restart'); });
+  };
+
+  function resetUI() {
+    if (eventSource) { eventSource.close(); eventSource = null; }
+    started = null;
+    outline = [];
+    frameReady = false;
+    sectionsDone = 0;
+    lastRow = null;
+    lastRowKey = null;
+    stopTick();
+
+    $('chat').hidden = true; $('chat').textContent = '';
+    $('log').textContent = '';
+    $('rfpPanel').hidden = true; $('rfpFacts').textContent = '';
+    $('outlinePanel').hidden = true; $('outlineList').textContent = '';
+    $('answerForm').hidden = true;
+    $('answer').value = ''; $('answer').placeholder = 'Answer the agent…';
+    $('elapsed').hidden = true; $('elapsed').textContent = '';
+    $('progress').hidden = true;
+    $('mode').hidden = true;
+    $('state').hidden = true;
+    $('stop').hidden = true; $('stop').disabled = false;
+    $('restart').hidden = true;
+
+    var frame = $('frame');
+    frame.src = 'about:blank'; frame.removeAttribute('data-url');
+    $('framePlaceholder').hidden = false;
+    $('export').disabled = true;
+    $('openfull').disabled = true;
+
+    $('drop').hidden = false;
+    $('file').value = '';
+  }
+
   var timer = null;
   function tick() {
     timer = setInterval(function () {
@@ -292,6 +420,8 @@
   fetch('/healthz').then(function (r) { return r.json(); }).then(function (d) {
     if (d.mode && d.mode !== 'live') { $('mode').hidden = false; $('mode').textContent = d.mode; }
     if (d.running) { started = Date.now(); $('drop').hidden = true; $('chat').hidden = false;
-      $('answerForm').hidden = false; $('elapsed').hidden = false; tick(); listen(); }
+      $('answerForm').hidden = false; $('elapsed').hidden = false;
+      $('stop').hidden = false; $('restart').hidden = false;
+      setState('working', 'Working…'); tick(); listen(); }
   }).catch(function () {});
 })();

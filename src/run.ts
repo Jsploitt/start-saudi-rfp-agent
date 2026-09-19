@@ -72,6 +72,11 @@ export class Run {
   /** Pending answers the agent is waiting on, keyed by nothing — it is a queue. */
   readonly answers: string[] = [];
 
+  /** Set by /api/stop; read once the agent loop exits to decide done vs stopped. */
+  stopRequested = false;
+  /** Wired by runAgent once the SDK session exists, so the server can interrupt it. */
+  interruptHandle: (() => void) | null = null;
+
   constructor(id = `run-${new Date().toISOString().replace(/[:.]/g, '-')}`) {
     this.id = id;
     this.dir = join(RUNS_DIR, id);
@@ -134,3 +139,6 @@ export class Run {
 let current: Run | null = null;
 export const getRun = (): Run | null => current;
 export const newRun = (id?: string): Run => (current = new Run(id));
+export const resetRun = (): void => {
+  current = null;
+};

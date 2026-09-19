@@ -49,6 +49,11 @@ export async function replayCachedRun(run: Run, speed = 1): Promise<void> {
 
   let previous = cache.events[0]?.at ?? Date.now();
   for (const event of cache.events) {
+    if (run.stopRequested) {
+      run.bus.emitEvent({ type: 'stopped' });
+      return;
+    }
+
     const gap = Math.min(MAX_GAP_MS, Math.max(0, event.at - previous)) / speed;
     previous = event.at;
     if (gap > 0) await new Promise((r) => setTimeout(r, gap));

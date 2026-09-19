@@ -9,7 +9,7 @@ import { mkdirSync, existsSync, copyFileSync } from 'node:fs';
 import { isAbsolute, join } from 'node:path';
 import { PUBLIC_DIR, RUNS_DIR, KIT_DIR, ROOT } from './paths.js';
 import { isMain } from './isMain.js';
-import { getRun, newRun } from './run.js';
+import { getRun, newRun, resetRun } from './run.js';
 import { Inbox, runAgent } from './agent.js';
 import { exportPdf } from './export/pdf.js';
 import { replayCachedRun } from './cached.js';
@@ -110,6 +110,27 @@ export function createServer() {
     if (!run) return res.status(409).json({ error: 'No run.' });
     run.bus.emitEvent({ type: 'answer', text });
     inbox?.push(text);
+    res.json({ ok: true });
+  });
+
+  /** Interrupt the running agent, leaving whatever it has written as-is. */
+  app.post('/api/stop', (_req, res) => {
+    const run = getRun();
+    if (!running || !run) return res.status(409).json({ error: 'No run.' });
+    run.stopRequested = true;
+    run.interruptHandle?.();
+    res.json({ ok: true });
+  });
+
+  /** Discard the current run entirely and go back to a clean slate. */
+  app.post('/api/restart', (_req, res) => {
+    const run = getRun();
+    if (running && run) {
+      run.stopRequested = true;
+      run.interruptHandle?.();
+    }
+    resetRun();
+    inbox = null;
     res.json({ ok: true });
   });
 

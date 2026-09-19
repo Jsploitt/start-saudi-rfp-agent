@@ -200,6 +200,8 @@ export async function runAgent(opts: AgentOptions, inbox = new Inbox()): Promise
     },
   });
 
+  run.interruptHandle = () => void session.interrupt().catch(() => {});
+
   const timer = setTimeout(() => {
     run.bus.emitEvent({ type: 'warn', text: 'Time limit reached — completing the document.' });
     void session.interrupt().catch(() => {});
@@ -303,7 +305,15 @@ export async function runAgent(opts: AgentOptions, inbox = new Inbox()): Promise
   } finally {
     clearTimeout(timer);
     inbox.close();
+    run.interruptHandle = null;
     if (researching) await researching;
+  }
+
+  /* A user-requested stop leaves the document exactly as it is — no fallback
+     fill-in, no "done". That completion path stays reserved for the deadline. */
+  if (run.stopRequested) {
+    run.bus.emitEvent({ type: 'stopped' });
+    return run;
   }
 
   if (!finished) announceDone();

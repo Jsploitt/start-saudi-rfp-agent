@@ -21,6 +21,7 @@ export type RunEvent =
   | { type: 'review'; findings: { requirement: string; severity: string; note: string }[] }
   | { type: 'warn'; text: string }
   | { type: 'done'; url: string; sections: number; elapsedMs: number }
+  | { type: 'stopped' }
   | { type: 'error'; message: string };
 
 export type Stamped = RunEvent & { at: number; seq: number };
