@@ -37,7 +37,10 @@ export function AgentStatus({ state, className }: { state: RunState; className?:
   /* Ageing a measured value is honest; inventing one is not. Both of these
      start from a number the agent sent and add only the time since it sent it. */
   const elapsedMs = hb ? hb.elapsedMs + (sinceBeat ?? 0) : state.startedAt ? now - state.startedAt : null;
-  const quietMs = hb ? hb.sinceLastActivityMs + (sinceBeat ?? 0) : null;
+  /* Null when the run is not running: there is no "quiet for" to report about
+     a session that has finished, and zero would read as "active a moment ago". */
+  const quietMs =
+    hb && hb.sinceLastActivityMs !== null ? hb.sinceLastActivityMs + (sinceBeat ?? 0) : null;
   const deadlineMs =
     hb?.deadlineRemainingMs != null ? Math.max(0, hb.deadlineRemainingMs - (sinceBeat ?? 0)) : null;
 
@@ -190,11 +193,12 @@ function Readout({ label, value, warn }: { label: string; value: string; warn?: 
 /**
  * The phases, as steps. It fills on `phase` events and on nothing else, so a
  * step that has not been reached is never shaded on the strength of a guess.
- * `fixing` is left out of the rail because it is a loop back, not a step
- * forward; when it is current it is named in the heading above instead.
+ * `revising` is already left out of PHASE_ORDER because it is a loop back,
+ * not a step forward; when it is current it is named in the heading above
+ * instead.
  */
 function PhaseRail({ current }: { current: RunState['phase'] }) {
-  const rail: Phase[] = PHASE_ORDER.filter((p) => p !== 'fixing');
+  const rail: Phase[] = PHASE_ORDER;
   const currentIndex = current ? rail.indexOf(current) : -1;
 
   return (

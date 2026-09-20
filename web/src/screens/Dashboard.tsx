@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { FileText, Plus } from 'lucide-react';
 import { sessions as api } from '@/api/client';
+import { useMode } from '@/App';
 import { AppShell } from '@/components/AppShell';
 import { Button } from '@/components/ui/button';
 import { Badge, Card, PanelHeading } from '@/components/ui/primitives';
@@ -14,19 +15,38 @@ import type { SessionSummary, SessionStatus } from '@/types';
  * the tool look like a one-shot converter; it is a workspace with a history,
  * and this says so before anything else does.
  */
-export function Dashboard({ mode }: { mode: string | null }) {
+export function Dashboard() {
+  const mode = useMode();
   const [rows, setRows] = useState<SessionSummary[] | null>(null);
   const [error, setError] = useState<string | null>(null);
   const navigate = useNavigate();
 
+  /**
+   * Re-read the list every ten seconds.
+   *
+   * The dashboard is not on any session's stream — subscribing to all of them
+   * to keep a list fresh would be absurd — so a run started in the other tab,
+   * or one that finished while this tab sat here, appears on the next poll.
+   * Ten seconds is slow enough to be free and quick enough that the second tab
+   * in the two-at-once demo does not look broken.
+   */
   useEffect(() => {
     let cancelled = false;
-    void api
-      .list()
-      .then((d) => !cancelled && setRows(d.sessions))
-      .catch((e) => !cancelled && setError(e instanceof Error ? e.message : String(e)));
+    const read = () =>
+      api
+        .list()
+        .then((d) => {
+          if (cancelled) return;
+          setRows(d.sessions);
+          setError(null);
+        })
+        .catch((e) => !cancelled && setError(e instanceof Error ? e.message : String(e)));
+
+    void read();
+    const timer = setInterval(() => void read(), 10_000);
     return () => {
       cancelled = true;
+      clearInterval(timer);
     };
   }, []);
 
@@ -91,8 +111,17 @@ const STATUS_LABEL: Record<SessionStatus, string> = {
   orphaned: 'Lost its agent',
 };
 
+/**
+ * One row.
+ *
+ * The listing carries a section *count* and no total, because until the agent
+ * has written the outline there is no total — and a bar drawn against a
+ * guessed denominator is a progress indicator measuring nothing. So the count
+ * is what is shown, and the proportion lives on the run screen, where the
+ * outline is known. A row of ticks, one per section written, says the same
+ * thing at a glance without claiming to know the end.
+ */
 function SessionCard({ session: s }: { session: SessionSummary }) {
-  const pct = s.sectionsTotal ? Math.round((s.sectionsDone / s.sectionsTotal) * 100) : 0;
 
   return (
     <Card className="transition-shadow hover:shadow-md">
@@ -103,12 +132,16 @@ function SessionCard({ session: s }: { session: SessionSummary }) {
         <div className="min-w-0 flex-1">
           <div className="flex flex-wrap items-center gap-3">
             <h3 className="truncate font-display text-base font-semibold text-ink">
-              {s.clientName}
+              {s.title}
             </h3>
             <Badge tone={STATUS_TONE[s.status]}>{STATUS_LABEL[s.status]}</Badge>
+            {s.mode !== 'live' ? <Badge tone="neutral">{s.mode}</Badge> : null}
           </div>
-          {s.assignment ? (
-            <p className="mt-1 truncate text-sm text-ink-muted">{s.assignment}</p>
+          {s.rfpName ? (
+            <p className="mt-1 truncate text-sm text-ink-muted">{s.rfpName}</p>
+          ) : null}
+          {s.restartedFrom ? (
+            <p className="mt-1 text-xs text-ink-muted">A re-run of an earlier session.</p>
           ) : null}
           <p className="mt-2 text-xs text-ink-muted tabular-nums">
             Created {isoDateTime(s.createdAt)} · Updated {isoDateTime(s.updatedAt)}
@@ -118,26 +151,25 @@ function SessionCard({ session: s }: { session: SessionSummary }) {
         {/* Section progress, counted rather than estimated. */}
         <div className="w-full shrink-0 sm:w-48">
           <p className="text-xs text-ink-muted tabular-nums">
-            {s.sectionsTotal
-              ? `${s.sectionsDone} of ${s.sectionsTotal} sections`
-              : 'Not planned yet'}
+            {s.sections
+              ? `${s.sections} section${s.sections === 1 ? '' : 's'} written`
+              : 'Nothing written yet'}
           </p>
           <div
             className="mt-1.5 flex gap-0.5"
             role="img"
-            aria-label={
-              s.sectionsTotal
-                ? `${pct}% of sections written`
-                : 'No sections planned yet'
-            }
+            aria-label={`${s.sections} sections written`}
           >
-            {Array.from({ length: Math.max(s.sectionsTotal, 1) }, (_, i) => (
+            {Array.from({ length: Math.max(s.sections, 1) }, (_, i) => (
               <span
                 key={i}
                 className={cn(
                   'h-1.5 flex-1 rounded-sm',
-                  i < s.sectionsDone ? 'bg-accent' : 'bg-surface-raised ring-1 ring-inset ring-hairline'
+                  s.sections ? 'bg-accent' : 'bg-surface-raised ring-1 ring-inset ring-hairline'
                 )}
+                /* One tick per section. `i` is the key, not a threshold: every
+                   tick drawn is a section that exists. */
+                data-index={i}
               />
             ))}
           </div>

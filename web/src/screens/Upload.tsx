@@ -1,12 +1,15 @@
-import { useRef, useState } from 'react';
-import { useNavigate, useParams } from 'react-router-dom';
-import { AlertTriangle, FileUp, Upload as UploadIcon } from 'lucide-react';
+import { useCallback, useEffect, useRef, useState } from 'react';
+import { useLocation, useNavigate } from 'react-router-dom';
+import { AlertTriangle, FileUp, LifeBuoy, Upload as UploadIcon } from 'lucide-react';
+import { ApiError, sessions as api } from '@/api/client';
+import { useMode } from '@/App';
+import { clearDraft, loadDraft } from '@/state/IntakeDraft';
 import { AppShell } from '@/components/AppShell';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/primitives';
-import { useRun } from '@/state/RunProvider';
 import { bytes } from '@/lib/format';
 import { cn } from '@/lib/utils';
+import type { Intake } from '@/types';
 
 /**
  * The RFP, as its own step.
@@ -15,21 +18,32 @@ import { cn } from '@/lib/utils';
  * they are enforced here as well as by the server so a wrong file is refused
  * before it is uploaded rather than after.
  *
- * The size warning is not arbitrary. Large PDFs are a known failure mode: a
- * scanned or image-heavy one has no usable text layer, so the agent reads it,
- * gets nothing, and writes a proposal against an empty RFP. Above a megabyte
- * is where that starts being likely, so the operator is told before they
- * spend nine minutes finding out.
+ * The size note is not a refusal. A large RFP used to be a failure mode twice
+ * over: an image-heavy scan has no text layer, and a very long document
+ * overflowed the model's context on the first turn and killed the run before
+ * anything appeared on screen. Both are now handled in read_rfp — a scan is
+ * refused with a reason, and a long document is read head and tail with the
+ * middle skipped and the skip declared.
+ *
+ * So the operator is told what to expect rather than warned off. The 2.65 MB
+ * sample in uploads/ completes.
  */
 
 const ACCEPT = '.pdf,.docx,.md,.txt';
 const ALLOWED = ['.pdf', '.docx', '.md', '.txt'];
 const WARN_ABOVE = 1_000_000;
 
-export function Upload({ mode }: { mode: string | null }) {
-  const { id } = useParams<{ id: string }>();
+/** The sample, relative to the source tree. The server refuses anything outside it. */
+const SAMPLE = 'proposal/sample-rfp.md';
+
+export function Upload() {
+  const mode = useMode();
   const navigate = useNavigate();
-  const { startFromFile, startFromSample } = useRun();
+  const location = useLocation();
+
+  /* The draft arrives in the router's state on a normal navigation, and from
+     sessionStorage when this URL is reloaded directly. */
+  const intake = ((location.state as Intake | null) ?? loadDraft()) as Intake;
 
   const [file, setFile] = useState<File | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -50,16 +64,67 @@ export function Upload({ mode }: { mode: string | null }) {
     setFile(f);
   };
 
-  const begin = async (fn: () => Promise<void>) => {
+  /**
+   * Create the session and go straight to it.
+   *
+   * One call: the RFP, the intake and the title travel together, the server
+   * answers with the id, and the agent is already running by the time the run
+   * screen mounts and attaches to the stream. Nothing is lost in that gap —
+   * the stream replays from seq 0.
+   */
+  const begin = async (start: () => Promise<{ sessionId: string }>) => {
     setBusy(true);
+    setError(null);
     try {
-      await fn();
-      navigate(`/s/${id}`);
+      const created = await start();
+      clearDraft();
+      navigate(`/s/${created.sessionId}`, { replace: true });
     } catch (e) {
-      setError(e instanceof Error ? e.message : String(e));
+      setError(
+        e instanceof ApiError && e.code === 'at_capacity'
+          ? `${e.message} This instance runs a fixed number of sessions at once so that none of them slows the others down.`
+          : e instanceof Error
+            ? e.message
+            : String(e)
+      );
       setBusy(false);
     }
   };
+
+  const title = intake.clientLegalName.trim() || undefined;
+
+  /**
+   * The parachute.
+   *
+   * One action, and it does not touch the server: the session is created with
+   * `mode: 'cached'`, so it replays the recorded run through the real stream
+   * and the real renderer while the instance stays live. No restart, no
+   * environment change, no cold start, and anything already running keeps
+   * running.
+   *
+   * Bound to `F` as well as the button, because the moment you need this you
+   * are standing in front of people and a keystroke is steadier than finding a
+   * control. Guarded so it cannot fire while focus is in a field.
+   */
+  const startFallback = useCallback(() => {
+    void begin(() => api.createFromPath(SAMPLE, intake, title, 'cached'));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [intake, title]);
+
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key !== 'f' && e.key !== 'F') return;
+      if (e.metaKey || e.ctrlKey || e.altKey) return;
+      const el = document.activeElement;
+      const tag = el?.tagName.toLowerCase();
+      if (tag === 'input' || tag === 'textarea' || tag === 'select') return;
+      if ((el as HTMLElement | null)?.isContentEditable) return;
+      e.preventDefault();
+      startFallback();
+    };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, [startFallback]);
 
   return (
     <AppShell mode={mode} breadcrumb={<span className="text-sm text-ink-muted">The RFP</span>}>
@@ -126,7 +191,7 @@ export function Upload({ mode }: { mode: string | null }) {
                   type="button"
                   variant="ghost"
                   disabled={busy}
-                  onClick={() => void begin(() => startFromSample(id))}
+                  onClick={() => void begin(() => api.createFromPath(SAMPLE, intake, title))}
                 >
                   Use the sample RFP
                 </Button>
@@ -149,10 +214,10 @@ export function Upload({ mode }: { mode: string | null }) {
               <p className="tint-caution flex items-start gap-2 rounded-md px-3 py-2 text-sm text-ink">
                 <AlertTriangle className="mt-0.5 size-4 shrink-0 text-ink-muted" aria-hidden="true" />
                 <span>
-                  This file is {bytes(file.size)}. Anything much over a megabyte is usually a
-                  scanned PDF, and a scan has no text for the agent to read — it will produce a
-                  proposal against an empty RFP rather than fail. If this one was scanned, send a
-                  text PDF or a DOCX instead.
+                  This file is {bytes(file.size)}. If it runs long, the agent reads the beginning
+                  and the end and tells you how much of the middle it skipped. If it turns out to
+                  be a scan, it will say so rather than write a proposal against a document it
+                  could not read.
                 </span>
               </p>
             ) : null}
@@ -167,13 +232,28 @@ export function Upload({ mode }: { mode: string | null }) {
               <Button
                 size="lg"
                 disabled={!file || busy}
-                onClick={() => file && void begin(() => startFromFile(file, id))}
+                onClick={() => file && void begin(() => api.createFromFile(file, intake, title))}
               >
                 {busy ? 'Starting…' : 'Start the agent'}
               </Button>
-              <Button variant="ghost" onClick={() => navigate('/')}>
+              <Button variant="ghost" onClick={() => navigate('/new')}>
                 Back
               </Button>
+            </div>
+
+            {/* The fallback. Deliberately last, deliberately quiet, and
+                deliberately on this screen: the decision to use it is taken
+                before a run starts, not during one. */}
+            <div className="mt-2 flex flex-wrap items-center gap-3 border-t border-hairline pt-4">
+              <Button type="button" variant="ghost" size="sm" disabled={busy} onClick={startFallback}>
+                <LifeBuoy aria-hidden="true" />
+                Play the recorded run
+              </Button>
+              <p className="text-xs text-ink-muted">
+                Press <kbd className="rounded border border-hairline px-1 font-mono">F</kbd>. Replays
+                the recording through the real screen, with no network. The instance stays live and
+                anything already running is untouched.
+              </p>
             </div>
           </CardContent>
         </Card>

@@ -28,5 +28,6 @@
       "@fixtures/*": ["../fixtures/*"]
     }
   },
-  "include": ["src", "vite.config.ts", "tailwind.config.ts", "../src/contracts.ts"]
+  "include": ["src", "vite.config.ts", "tailwind.config.ts", "../src/contracts.ts"],
+  "exclude": ["src/_archive"]
 }

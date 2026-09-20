@@ -1,11 +1,11 @@
 import type {
   ChatMessage,
+  ClientEvent,
   LogRow,
   RfpAnalysis,
   RunAction,
   RunState,
   SectionState,
-  Stamped,
 } from '@/types';
 import { PHASES } from '@/lib/phases';
 import { truncate } from '@/lib/format';
@@ -128,27 +128,37 @@ export function runReducer(state: RunState, action: RunAction): RunState {
     case 'reset':
       return { ...initialRunState, mode: state.mode };
 
-    case 'started':
+    /**
+     * What the session endpoint said, applied before the event log replays.
+     *
+     * Without this a reopened session renders for a moment as an empty run —
+     * no outline, no document, status "Not started" — and then snaps into
+     * place as the replay arrives. The replay is authoritative and overwrites
+     * all of this; the point is only that the first frame is not a lie.
+     */
+    case 'hydrate': {
+      const d = action.detail;
       return {
         ...state,
-        startedAt: state.startedAt ?? Date.now(),
-        session: 'running',
-        statusKind: 'working',
-        statusText: 'Working…',
+        mode: d.mode && d.mode !== 'live' ? d.mode : null,
+        session: d.status,
+        statusKind: statusKindFor(d.status, state.statusKind),
+        statusText: statusTextFor(d.status, state.statusText),
+        phase: d.phase,
+        phaseLabel: d.phase ? PHASES[d.phase].label : null,
+        startedAt: state.startedAt ?? d.createdAt,
+        outline: d.outline,
+        rfp: (d.rfp as RfpAnalysis | null) ?? null,
+        brief: d.brief ?? null,
+        sectionsDone: Math.max(state.sectionsDone, d.sections),
+        sectionsTotal: Math.max(state.sectionsTotal, d.outline.length, d.sections),
+        /* The document exists on disk whether or not this tab has seen a
+           `preview` event, so a finished session shows its proposal at once. */
+        previewUrl: state.previewUrl ?? (d.sections ? d.proposalUrl : null),
+        finished: d.status === 'done',
+        stopped: d.status === 'stopped',
       };
-
-    case 'attach':
-      return {
-        ...state,
-        mode: action.mode,
-        startedAt: state.startedAt ?? Date.now(),
-        session: 'running',
-        statusKind: 'working',
-        statusText: 'Working…',
-      };
-
-    case 'mode':
-      return { ...state, mode: action.mode };
+    }
 
     case 'local-error':
       return {
@@ -163,7 +173,14 @@ export function runReducer(state: RunState, action: RunAction): RunState {
   }
 }
 
-function applyEvent(state: RunState, e: Stamped): RunState {
+/**
+ * `ClientEvent`, not `Stamped`: what a browser receives is the persisted union
+ * plus the transient heartbeat, and folding them together is what lets one
+ * switch handle both. The switch is exhaustive over that union, so an event
+ * the server adds and this file does not handle is a compile error rather than
+ * a silently ignored frame.
+ */
+function applyEvent(state: RunState, e: ClientEvent): RunState {
   const at = e.at || Date.now();
 
   /* `seq === -1` marks a transient event — currently only the heartbeat.
@@ -389,7 +406,7 @@ function applyEvent(state: RunState, e: Stamped): RunState {
       return withSeq({
         ...state,
         phase: e.phase,
-        phaseLabel: e.label || PHASES[e.phase].label,
+        phaseLabel: PHASES[e.phase].label,
         phaseSince: changed ? at : (state.phaseSince ?? at),
       });
     }
@@ -417,10 +434,11 @@ function applyEvent(state: RunState, e: Stamped): RunState {
      */
     case 'heartbeat': {
       const phaseChanged = state.phase !== e.phase;
+      const label = e.phase ? PHASES[e.phase].label : state.phaseLabel;
       return {
         ...state,
         phase: e.phase,
-        phaseLabel: state.phaseLabel && !phaseChanged ? state.phaseLabel : PHASES[e.phase].label,
+        phaseLabel: state.phaseLabel && !phaseChanged ? state.phaseLabel : label,
         phaseSince: phaseChanged ? at : (state.phaseSince ?? at),
         sectionsDone: Math.max(state.sectionsDone, e.sectionsDone),
         sectionsTotal: e.sectionsTotal || state.sectionsTotal,
@@ -438,6 +456,12 @@ function applyEvent(state: RunState, e: Stamped): RunState {
       };
     }
   }
+
+  /* Every case above returns, so this is unreachable for any event the
+     contract declares. It exists for the one that does not: a server running
+     ahead of this bundle sends a type this switch has never seen, and dropping
+     it is better than throwing inside a reducer mid-render. */
+  return state;
 }
 
 function statusKindFor(s: RunState['session'], fallback: RunState['statusKind']) {

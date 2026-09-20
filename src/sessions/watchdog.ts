@@ -17,6 +17,18 @@ export function startWatchdog(): NodeJS.Timeout {
   const timer = setInterval(() => {
     for (const run of liveRuns()) {
       if (!run.running) continue;
+
+      /**
+       * A session waiting on the operator is idle on purpose.
+       *
+       * The agent has asked its question and is blocked on the inbox; nothing
+       * is wedged, and the reason for the silence is known and displayed. Left
+       * in, this killed any run whose question took more than five minutes to
+       * answer — which, in a demo where the question is the thing being shown
+       * off and discussed, is most of them.
+       */
+      if (run.status === 'waiting') continue;
+
       const idle = run.sinceLastActivityMs;
 
       if (idle > KILL_AFTER_MS) {

@@ -1,7 +1,8 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ArrowRight } from 'lucide-react';
-import { sessions as api } from '@/api/client';
+import { useMode } from '@/App';
+import { loadDraft, saveDraft } from '@/state/IntakeDraft';
 import { AppShell } from '@/components/AppShell';
 import { Button } from '@/components/ui/button';
 import {
@@ -15,7 +16,7 @@ import {
   Select,
   Textarea,
 } from '@/components/ui/primitives';
-import type { IntakeDraft } from '@/types';
+import type { Intake } from '@/types';
 
 /**
  * Structured intake, replacing free-text guessing.
@@ -45,31 +46,31 @@ const SECTORS = [
   'Other',
 ];
 
-const EMPTY: IntakeDraft = {
-  clientLegalName: '',
-  sector: '',
-  country: '',
-  contactName: '',
-  contactEmail: '',
-  assignment: '',
-  targetDate: '',
-};
-
-export function Intake({ mode }: { mode: string | null }) {
-  const [draft, setDraft] = useState<IntakeDraft>(EMPTY);
-  const [errors, setErrors] = useState<Partial<Record<keyof IntakeDraft, string>>>({});
-  const [busy, setBusy] = useState(false);
-  const [failure, setFailure] = useState<string | null>(null);
+export function Intake() {
+  const mode = useMode();
+  /* Reloading this step, or coming back to it from the RFP step, should find
+     what was already typed. */
+  const [draft, setDraft] = useState<Intake>(loadDraft);
+  const [errors, setErrors] = useState<Partial<Record<keyof Intake, string>>>({});
   const navigate = useNavigate();
 
-  const set = <K extends keyof IntakeDraft>(key: K, value: IntakeDraft[K]) => {
+  const set = <K extends keyof Intake>(key: K, value: Intake[K]) => {
     setDraft((d) => ({ ...d, [key]: value }));
     setErrors((e) => ({ ...e, [key]: undefined }));
   };
 
-  const submit = async (e: React.FormEvent) => {
+  /**
+   * Nothing is posted here.
+   *
+   * This step used to create a session and hand back an id for the RFP step to
+   * fill, which does not match the server: a session id is a run id, and a run
+   * is created with its RFP and started in the same call. So the draft is kept
+   * in the tab and both halves are posted together on the next screen — which
+   * also means abandoning the form leaves no empty session on the dashboard.
+   */
+  const submit = (e: React.FormEvent) => {
     e.preventDefault();
-    const next: Partial<Record<keyof IntakeDraft, string>> = {};
+    const next: Partial<Record<keyof Intake, string>> = {};
     if (!draft.clientLegalName.trim()) next.clientLegalName = 'The cover page needs a legal name.';
     if (!draft.assignment.trim()) next.assignment = 'One line is enough.';
     if (draft.contactEmail && !draft.contactEmail.includes('@'))
@@ -79,15 +80,8 @@ export function Intake({ mode }: { mode: string | null }) {
       return;
     }
 
-    setBusy(true);
-    setFailure(null);
-    try {
-      const created = await api.create(draft);
-      navigate(`/s/${created.id}/upload`);
-    } catch (err) {
-      setFailure(err instanceof Error ? err.message : String(err));
-      setBusy(false);
-    }
+    saveDraft(draft);
+    navigate('/new/rfp', { state: draft });
   };
 
   return (
@@ -188,15 +182,9 @@ export function Intake({ mode }: { mode: string | null }) {
                 />
               </Field>
 
-              {failure ? (
-                <p role="alert" className="tint-danger rounded-md px-3 py-2 text-sm text-ink">
-                  Could not create the proposal. {failure}
-                </p>
-              ) : null}
-
               <div className="flex items-center gap-3 pt-1">
-                <Button type="submit" size="lg" disabled={busy}>
-                  {busy ? 'Creating…' : 'Continue'}
+                <Button type="submit" size="lg">
+                  Continue
                   <ArrowRight aria-hidden="true" />
                 </Button>
                 <Button type="button" variant="ghost" onClick={() => navigate('/')}>

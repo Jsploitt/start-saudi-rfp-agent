@@ -3,9 +3,26 @@
  * nothing in this app redeclares them. If the backend changes the shape of an
  * event, this app stops compiling — which is the point.
  */
-export type { Phase, RunEvent, SessionStatus, Stamped } from '@contracts';
+export type {
+  ClientEvent,
+  CreatedSession,
+  Health,
+  HeartbeatPayload,
+  Intake,
+  Phase,
+  RunEvent,
+  SessionDetail,
+  SessionStatus,
+  SessionSummary,
+  Stamped,
+} from '@contracts';
 
-import type { Phase, SessionStatus, Stamped } from '@contracts';
+import type {
+  ClientEvent,
+  Phase,
+  SessionDetail as SessionDetailType,
+  SessionStatus,
+} from '@contracts';
 
 /* ------------------------------------------------------------------------ *
  * Narrowings of the contract's `unknown` payloads.
@@ -64,9 +81,10 @@ export interface LogRow {
 }
 
 export interface Heartbeat {
-  phase: Phase;
+  phase: Phase | null;
   elapsedMs: number;
-  sinceLastActivityMs: number;
+  /** Null when the run is not running. */
+  sinceLastActivityMs: number | null;
   sectionsDone: number;
   sectionsTotal: number;
   deadlineRemainingMs: number | null;
@@ -122,29 +140,42 @@ export interface RunState {
 
 export type RunAction =
   | { type: 'reset' }
-  | { type: 'attach'; mode: string | null }
-  | { type: 'started' }
-  | { type: 'mode'; mode: string | null }
-  | { type: 'event'; event: Stamped }
+  /** What GET /api/sessions/:id said, applied before the log replays. */
+  | { type: 'hydrate'; detail: SessionDetailType }
+  | { type: 'event'; event: ClientEvent }
   | { type: 'local-error'; what: string; detail?: string };
 
 /* ------------------------------------------------------------------------ *
- * Sessions and theming — the surfaces the rebuilt backend exposes.
+ * Theming.
+ *
+ * `SessionSummary`, `SessionDetail` and `Intake` are NOT declared here any
+ * more: they are the server's shapes and they are re-exported from
+ * `@contracts` above. A UI that redeclares a wire type is a UI that compiles
+ * happily while rendering a field the server stopped sending.
  * ------------------------------------------------------------------------ */
 
-export interface SessionSummary {
-  id: string;
-  clientName: string;
-  assignment: string | null;
-  status: SessionStatus;
-  sectionsDone: number;
-  sectionsTotal: number;
-  createdAt: number;
-  updatedAt: number;
-  themeId: ThemePresetId;
-}
-
+/**
+ * The document's theme, as this UI offers it: three fixed presets.
+ *
+ * The server stores `{preset, accent}` as free-form strings, because the
+ * renderer takes any accent token and a custom picker is a plausible next
+ * step. This union is the narrower thing the picker offers today, and the one
+ * place the two meet is `sessions.setTheme`.
+ */
 export type ThemePresetId = 'start-saudi' | 'neutral-corporate' | 'client-accent';
+
+export const THEME_PRESET_IDS: ThemePresetId[] = [
+  'start-saudi',
+  'neutral-corporate',
+  'client-accent',
+];
+
+/** A preset the server has never heard of renders as the house style. */
+export function asPresetId(value: string | null | undefined): ThemePresetId {
+  return THEME_PRESET_IDS.includes(value as ThemePresetId)
+    ? (value as ThemePresetId)
+    : 'start-saudi';
+}
 
 export interface ThemePreset {
   id: ThemePresetId;
@@ -152,14 +183,4 @@ export interface ThemePreset {
   description: string;
   /** Token names, not values — the swatch reads them off the live stylesheet. */
   swatch: [string, string, string];
-}
-
-export interface IntakeDraft {
-  clientLegalName: string;
-  sector: string;
-  country: string;
-  contactName: string;
-  contactEmail: string;
-  assignment: string;
-  targetDate: string;
 }

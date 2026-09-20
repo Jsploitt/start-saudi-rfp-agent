@@ -50,6 +50,7 @@ type DbSession = {
   updated_at: number;
   finished_at: number | null;
   archived_at: number | null;
+  intake: string | null;
 };
 
 const toRow = (r: DbSession): SessionRow => ({
@@ -70,6 +71,7 @@ const toRow = (r: DbSession): SessionRow => ({
   updatedAt: r.updated_at,
   finishedAt: r.finished_at,
   archivedAt: r.archived_at,
+  intake: r.intake ?? null,
 });
 
 export type NewSession = {
@@ -81,6 +83,8 @@ export type NewSession = {
   rfpPath?: string | null;
   rfpName?: string | null;
   restartedFrom?: string | null;
+  /** The intake form, already serialised. */
+  intake?: string | null;
 };
 
 /**
@@ -94,8 +98,8 @@ export function insertSession(s: NewSession): void {
     .prepare(
       `INSERT INTO sessions
          (id, user_id, title, status, phase, mode, rfp_path, rfp_name,
-          restarted_from, last_seq, created_at, updated_at)
-       VALUES (?, ?, ?, ?, NULL, ?, ?, ?, ?, 0, ?, ?)
+          restarted_from, intake, last_seq, created_at, updated_at)
+       VALUES (?, ?, ?, ?, NULL, ?, ?, ?, ?, ?, 0, ?, ?)
        ON CONFLICT(id) DO UPDATE SET
          title = excluded.title,
          status = excluded.status,
@@ -103,6 +107,7 @@ export function insertSession(s: NewSession): void {
          mode = excluded.mode,
          rfp_path = excluded.rfp_path,
          rfp_name = excluded.rfp_name,
+         intake = excluded.intake,
          error = NULL,
          finished_at = NULL,
          archived_at = NULL,
@@ -117,6 +122,7 @@ export function insertSession(s: NewSession): void {
       s.rfpPath ?? null,
       s.rfpName ?? null,
       s.restartedFrom ?? null,
+      s.intake ?? null,
       t,
       t
     );
@@ -135,6 +141,7 @@ const PATCHABLE: Record<string, string> = {
   lastSeq: 'last_seq',
   finishedAt: 'finished_at',
   archivedAt: 'archived_at',
+  intake: 'intake',
 };
 
 export function updateSession(id: string, patch: Partial<SessionRow>): void {

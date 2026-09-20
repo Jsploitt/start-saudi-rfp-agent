@@ -65,4 +65,14 @@ export const MIGRATIONS: Migration[] = [
       );
     `,
   },
+  {
+    version: 2,
+    sql: `
+      -- The intake form, as JSON. Collected before the RFP and handed to the
+      -- agent as stated fact, so a client's legal name on a cover page is
+      -- something a person typed rather than something the model inferred from
+      -- a document that may never state it.
+      ALTER TABLE sessions ADD COLUMN intake TEXT;
+    `,
+  },
 ];

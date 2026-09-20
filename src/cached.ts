@@ -58,6 +58,21 @@ export async function replayCachedRun(run: Run, speed = 1): Promise<void> {
     previous = event.at;
     if (gap > 0) await new Promise((r) => setTimeout(r, gap));
 
+    /**
+     * A replayed event is activity.
+     *
+     * Without this the replay never touches the run, so `lastActivityAt` stays
+     * at construction time: the heartbeat reports the gap growing, at ninety
+     * seconds the watchdog sets `alive: false` and the UI says "the agent is
+     * not responding" over a document that is visibly still filling, and at
+     * five minutes the watchdog stops the run outright with an error.
+     *
+     * Which is to say: the fallback died on stage, at minute five, every time.
+     * The one path that must not fail was the one path nothing had watched all
+     * the way through.
+     */
+    run.touch();
+
     /* Rebuild the document as the events go by, so the preview is genuinely live. */
     if (event.type === 'section:done') {
       const payload = cache.sections[event.id];
@@ -67,6 +82,16 @@ export async function replayCachedRun(run: Run, speed = 1): Promise<void> {
         run.writeProposal();
       }
     }
+    /* Go through setPhase rather than re-emitting the raw event, so the
+       session row learns its phase too. Otherwise a replayed session shows the
+       phase correctly on the stream and `null` in the listing — the same run
+       described two different ways depending on which one you asked. setPhase
+       emits the event itself, and ignores a repeat of the phase it is on. */
+    if (event.type === 'phase') {
+      run.setPhase(event.phase);
+      continue;
+    }
+
     if (event.type === 'preview') {
       run.bus.emitEvent({ type: 'preview', url: run.proposalUrl, sectionId: event.sectionId });
       continue;

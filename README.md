@@ -11,14 +11,44 @@ work being visible, and nothing failing in the room.
 
 ## Run it
 
+Two processes: the express server, and Vite for the operator UI.
+
 ```bash
-npm install
-npm run dev
+npm install                  # the server
+npm --prefix web install     # the operator UI
+
+cp .env.example .env         # then set ACCESS_PASSCODE and SESSION_SECRET
+
+npm --prefix web run dev     # Vite, on 5174
+npm run dev                  # express, on 5173
 ```
 
-Then open **http://localhost:5173**.
+Then open **http://localhost:5173** — not 5174. With `VITE_DEV_URL=http://localhost:5174`
+set (it is in `.env.example`), express hands everything that is not an API route or an
+artifact to Vite, websockets included. The whole app is therefore on one origin in
+development exactly as it is in production, which is what keeps the session cookie working
+and HMR alive at the same time.
 
-### Authentication
+To run it the way the container does, build the UI first and leave `VITE_DEV_URL` unset:
+
+```bash
+npm run build                # web/dist
+npm run dev                  # express serves web/dist directly
+```
+
+### Signing in
+
+The UI is behind a shared passcode. Set `ACCESS_PASSCODE` in `.env`; leave it unset and one
+is generated and printed at boot, and it changes on every restart.
+
+Signing in sets `ss_session`, an HttpOnly cookie signed with `SESSION_SECRET`. It is
+stateless, so a restart does not sign anyone out — but if `SESSION_SECRET` is unset a
+per-process key is used and every restart does. Set both before hosting.
+
+A cookie rather than a bearer token for one specific reason: `EventSource` cannot set an
+`Authorization` header, and the run stream is an `EventSource`.
+
+### The API key
 
 The key in `.env` works as it is — verified against this SDK version, with the key and
 without it. `.env` is gitignored, so a fresh clone has none; copy `.env.example` to `.env`
@@ -39,7 +69,9 @@ The error message in the UI says this itself. You do not need to pre-empt it.
 ### The other commands
 
 ```bash
+npm run build                # build the operator UI into web/dist
 npm run demo                 # unattended CLI run against the sample RFP, ~4 minutes
+npm run smoke                # two sessions at once against a running server, asserts isolation
 npm run rehearse             # drive the whole demo script in a browser, beats 1-10
 npm run record               # re-record fixtures/ from a live run
 npm run golden               # rebuild fixtures/golden-proposal.html from the cached run
@@ -147,6 +179,56 @@ output cannot be malformed.
 
 Every built-in tool is switched off. The agent has five tools and no filesystem.
 
+That sentence was not true for most of this project's life, and the way it was false is
+worth writing down, because the mistake is an easy one and it is invisible.
+
+The session was configured with `allowedTools: [the five]` and a hand-written
+`disallowedTools` list of built-ins. Both look like they restrict the toolbox. Only one of
+them does anything of the kind, and it is neither:
+
+- **`allowedTools` is an auto-approve list, not an allowlist.** It says which tools run
+  without a permission prompt. It does not remove anything. The SDK's own documentation
+  says so in one line: *"To restrict which tools are available, use the `tools` option
+  instead."*
+- **`disallowedTools` removes exactly what it names**, and it named the built-ins that
+  existed on the day it was written: Bash, Read, Write, Edit, Glob, Grep, WebFetch,
+  WebSearch, TodoWrite, Task and a few more.
+
+Everything the harness has gained since was in neither list, so it arrived by default. A
+`system`/`init` line from a real session showed the agent had also been handed `CronCreate`,
+`Monitor`, `Skill`, `ToolSearch` and `Workflow` — plus a set of MCP servers inherited from
+the developer's own plugin environment, because `settingSources` was omitted and omitting it
+loads `~/.claude/settings.json`, the project settings and every plugin they enable.
+
+So an agent documented as having five tools and no filesystem could, in principle, schedule
+a cron job, and could reach whatever the developer happened to have connected that week. It
+never did. It had no reason to and the system prompt gave it none. That is luck, not design,
+and it would not have survived a laptop with different plugins installed.
+
+Three changes make the sentence true:
+
+```ts
+tools: [],            // the restriction. Every built-in, including next month's
+settingSources: [],   // no user settings, no project settings, no plugins, no inherited MCP
+env: sessionEnv(),    // an allowlist of variable names, not a spread of process.env
+```
+
+`sessionEnv()` is the third, and it matters as much as the other two. It used to be
+`{ ...process.env }`, which handed the subprocess `CLAUDE_CONFIG_DIR`, `CLAUDECODE` and the
+rest of the developer's Claude Code environment. It now copies a named list — the Anthropic
+variables, this app's two switches, and enough of an operating system to spawn Node — so the
+agent's environment is the same on a laptop as it is in the container.
+
+The check is one line of output. A session's `init` message now reads:
+
+```
+init tools      : []
+init mcp servers: []
+```
+
+The five tools are the MCP server this app builds, and `allowedTools` still names them so
+they run without prompting. It is a convenience now, not the fence.
+
 **`read_rfp` is deliberately two calls.** Deterministic extraction, then the model's
 analysis, then deterministic validation. That is what lets the system *reject* an empty
 `gaps` array rather than hope for a full one.
@@ -172,21 +254,56 @@ main loop and so a failure in one is a single `await` to give up on.
 ```
 start-saudi-kit/   INPUT — a junction to ../start-saudi-kit. Do not modify
 src/
-  server.ts        Express + SSE + static
+  server.ts        Express + SSE + static + the React build
+  contracts.ts     THE WIRE CONTRACT. Imported by both halves; see below
   agent.ts         the SDK session, the subagent choreography, the fallback
   prompt.ts        buildSystemPrompt() — assembled from the kit at boot
   events.ts        typed event bus -> SSE
   cached.ts        DEMO_MODE=cached replay
   library.ts       content/ in memory
   run.ts           run state: sections, brief, analysis, transcript
+  auth/            passcode, the signed cookie, the same-origin check
+  db/              SQLite: migrations, the store. One file under DATA_DIR
+  sessions/        the registry, rehydration, concurrency, the watchdog
   tools/           the five
   subagents/       researcher, reviewer
   render/          blocks.ts (zod), renderer.ts, template.ts
   export/pdf.ts
-public/            the demo UI: plain HTML, CSS and JS, no build step
+web/               the operator UI: React, Vite, Tailwind
+  src/api/         client.ts and stream.ts — every call, in two files
+  src/state/       the reducer and the per-session provider
+  src/screens/     dashboard, intake, RFP, run
+  src/_archive/    the MSW mock layer the UI was built against, kept
+  dist/            the build. Served by express in production
+public/            brand assets, and the tokens the document references
 runs/              generated proposals and transcripts, gitignored
 fixtures/          golden-proposal.html, cached-run.json
 ```
+
+**`src/contracts.ts` is the seam.** The React app imports it as `@contracts`, so the event
+union, the session shapes and the heartbeat are declared once, on the server's side, and the
+browser re-exports them rather than restating them. A UI that redeclares a wire type is a UI
+that compiles happily while rendering a field the server stopped sending; this one stops
+compiling instead.
+
+That is not a hypothetical. The two halves were built in parallel against a guessed API, and
+bringing them together turned up the expected crop of disagreements: the UI had a `fixing`
+phase the server calls `revising` and a `printing` phase the server does not have, expected
+one global `/api/run` where the server is keyed by session, and expected the PDF export to
+return a URL where the server returns 202 and sends the URL down the stream. Every one of
+those is now a compile error if it comes back.
+
+---
+
+## Hosting
+
+See **`DEPLOY.md`**. In short: a Dockerfile, a Railway volume mounted at `/data`, and four
+secrets. `DATA_DIR=/data` is what puts the database, the generated documents and the uploads
+on the volume rather than in a container layer that a deploy throws away.
+
+The image builds the operator UI in its own stage and copies `web/dist` forward. Without
+that stage the container serves a working API behind no interface at all — and it passes its
+health check while doing it, which is the worst way for this to fail.
 
 `start-saudi-kit/` is a Windows directory junction to the kit beside this folder. On another
 machine, replace it with the kit itself or re-create the junction:

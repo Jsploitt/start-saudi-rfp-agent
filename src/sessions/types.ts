@@ -1,31 +1,10 @@
 /** The vocabulary shared by the registry, the store and the API. */
 
-export type SessionStatus =
-  | 'queued'
-  | 'running'
-  | 'waiting'
-  | 'done'
-  | 'stopped'
-  | 'error'
-  /** Its subprocess died with a previous process. Artifacts remain readable. */
-  | 'orphaned';
+/* Declared in the wire contract, which imports nothing, and re-exported here
+   because that is where the server has always looked for them. */
+export type { Phase, SessionStatus, SessionSummary, Theme } from '../contracts.js';
 
-/**
- * The nine natural points of a run. Purely for legibility: "Researching, 47s"
- * reads as working, "Researching" with no timer reads as frozen.
- */
-export type Phase =
-  | 'starting'
-  | 'reading-rfp'
-  | 'asking'
-  | 'researching'
-  | 'briefing'
-  | 'composing'
-  | 'reviewing'
-  | 'revising'
-  | 'ready';
-
-export type Theme = { preset: string | null; accent: string | null };
+import type { Phase, SessionStatus } from '../contracts.js';
 
 export type SessionRow = {
   id: string;
@@ -45,20 +24,7 @@ export type SessionRow = {
   updatedAt: number;
   finishedAt: number | null;
   archivedAt: number | null;
+  /** The intake form as stored: JSON, or null when the form was skipped. */
+  intake: string | null;
 };
 
-export type SessionSummary = {
-  id: string;
-  title: string;
-  status: SessionStatus;
-  phase: Phase | null;
-  mode: string;
-  rfpName: string | null;
-  sections: number;
-  live: boolean;
-  restartedFrom: string | null;
-  createdAt: number;
-  updatedAt: number;
-  finishedAt: number | null;
-  archivedAt: number | null;
-};

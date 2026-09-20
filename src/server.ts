@@ -6,12 +6,12 @@
  */
 
 import 'dotenv/config';
-import express, { type Request, type Response } from 'express';
+import express, { type NextFunction, type Request, type Response } from 'express';
 import cookieParser from 'cookie-parser';
 import { createProxyMiddleware } from 'http-proxy-middleware';
 import multer from 'multer';
 import { mkdirSync, existsSync, copyFileSync, renameSync } from 'node:fs';
-import { isAbsolute, join, basename } from 'node:path';
+import { isAbsolute, join, basename, relative, resolve } from 'node:path';
 import { PUBLIC_DIR, RUNS_DIR, UPLOADS_DIR, KIT_DIR, ROOT, DATA_DIR } from './paths.js';
 import { isMain } from './isMain.js';
 import {
@@ -46,6 +46,7 @@ import {
   requireSameOrigin,
 } from './auth/index.js';
 import type { Stamped } from './events.js';
+import { EMPTY_INTAKE, hasIntake, type Intake } from './contracts.js';
 
 const upload = multer({ dest: join(DATA_DIR, 'tmp-uploads') });
 
@@ -54,12 +55,54 @@ const DEADLINE_MS = 9 * 60_000;
 /** The UI is styled from the kit's own tokens. One source of colour. */
 const TOKENS_PATH = join(KIT_DIR, 'brand', 'tokens.css');
 
+/**
+ * Resolve a caller-supplied RFP path, inside the source tree and nowhere else.
+ *
+ * The `path` field exists for one reason: the "use the sample RFP" door. It is
+ * a string from an authenticated browser, which is not the same as a trusted
+ * one — `{"path":"../../../../etc/passwd"}` used to resolve, exist, and be fed
+ * to the agent, because the old version only asked whether the file was there.
+ *
+ * Two rules now. An absolute path is refused outright: nothing legitimate
+ * sends one. A relative path is resolved against each base and then checked to
+ * be genuinely underneath it, with `relative()` rather than a string prefix so
+ * that a sibling directory named like the base cannot pass.
+ */
 function resolveRfp(arg: string): string {
-  for (const base of [ROOT, KIT_DIR, process.cwd()]) {
-    const p = isAbsolute(arg) ? arg : join(base, arg);
+  if (!arg || isAbsolute(arg) || /^[a-zA-Z]:/.test(arg)) {
+    throw new Error('That path is not allowed.');
+  }
+  for (const base of [ROOT, KIT_DIR]) {
+    const p = resolve(base, arg);
+    const rel = relative(base, p);
+    if (rel.startsWith('..') || isAbsolute(rel)) continue;
     if (existsSync(p)) return p;
   }
   throw new Error(`RFP not found: ${arg}`);
+}
+
+/**
+ * The intake form off the wire. Multipart sends it as a JSON string, JSON
+ * sends it as an object, and either way every field is coerced to a trimmed,
+ * bounded string. Unknown keys are dropped: the shape is this app's, not the
+ * caller's.
+ */
+function readIntake(raw: unknown): Intake | null {
+  let obj: unknown = raw;
+  if (typeof raw === 'string') {
+    try {
+      obj = JSON.parse(raw);
+    } catch {
+      return null;
+    }
+  }
+  if (!obj || typeof obj !== 'object') return null;
+  const src = obj as Record<string, unknown>;
+  const intake = { ...EMPTY_INTAKE };
+  for (const key of Object.keys(EMPTY_INTAKE) as (keyof Intake)[]) {
+    intake[key] = String(src[key] ?? '').trim().slice(0, 300);
+  }
+  return hasIntake(intake) ? intake : null;
 }
 
 /** Look in memory first, then the tables. Null means it never existed. */
@@ -173,6 +216,7 @@ export function createServer() {
         rfpName,
         restartedFrom: String(req.body?.restartedFrom ?? '') || null,
         userId: req.user?.id ?? null,
+        intake: readIntake(req.body?.intake),
       });
 
       const autostart = req.body?.autostart === undefined || truthy(req.body.autostart);
@@ -193,6 +237,7 @@ export function createServer() {
       outline: run.outline,
       rfp: run.rfp,
       brief: run.brief,
+      intake: run.intake,
       lastSeq: store.lastSeq(run.id),
       sinceLastActivityMs: run.running ? run.sinceLastActivityMs : null,
     });
@@ -272,6 +317,9 @@ export function createServer() {
       rfpName: previous.rfpName,
       restartedFrom: previous.id,
       userId: req.user?.id ?? null,
+      /* A re-run of the same RFP is a re-run of the same engagement. Asking
+         for the client's legal name a second time would be absurd. */
+      intake: previous.intake,
     });
     res.status(201).json({ sessionId: run.id, url: run.proposalUrl, restartedFrom: previous.id });
     start(run);
@@ -398,14 +446,68 @@ export function createServer() {
   const webDist = join(ROOT, 'web', 'dist');
 
   if (viteUrl) {
+    /**
+     * `pathFilter`, not `app.use(NOT_OURS, …)`.
+     *
+     * Mounting middleware on a path makes express strip the matched portion
+     * from `req.url`, and a regex that matches the whole path strips the whole
+     * path: every request reached Vite as `/`, so the app's own HTML came back
+     * and `/src/main.tsx` 404'd. The page rendered as a blank white screen with
+     * three aborted requests in the console and no error anywhere.
+     *
+     * `pathFilter` makes the same choice about which requests to forward
+     * without rewriting any of them.
+     */
     app.use(
-      NOT_OURS,
-      createProxyMiddleware({ target: viteUrl, changeOrigin: false, ws: true })
+      createProxyMiddleware({
+        target: viteUrl,
+        changeOrigin: false,
+        ws: true, // HMR, so the dev experience survives being behind one origin
+        pathFilter: (path) => NOT_OURS.test(path),
+      })
     );
   } else if (existsSync(webDist)) {
     app.use(express.static(webDist));
     app.get(NOT_OURS, (_req, res) => res.sendFile(join(webDist, 'index.html')));
   }
+
+  /* An unknown /api route is a JSON 404, not the HTML one express would
+     otherwise fall through to. A client that only parses JSON should never
+     have to guess what a stray `<!DOCTYPE html>` means. */
+  app.use('/api', (_req, res) => bad(res, 404, 'No such endpoint.', 'not_found'));
+
+  /**
+   * The last word on every error, so that none of them is express's.
+   *
+   * Express's default handler renders an HTML page with the stack trace in it,
+   * which on this app meant a malformed JSON body answered with the absolute
+   * path of every file in the call chain — `C:\Users\...` in development and
+   * the container's layout in production. It is also the wrong content type
+   * for a client that only ever parses JSON.
+   *
+   * Four arguments, including the unused `next`: that signature is how express
+   * recognises an error handler at all.
+   */
+  app.use((err: Error & { status?: number; type?: string }, _req: Request, res: Response, _next: NextFunction) => {
+    if (res.headersSent) return;
+    const status = err.status && err.status >= 400 && err.status < 600 ? err.status : 500;
+    const code =
+      err.type === 'entity.parse.failed'
+        ? 'bad_json'
+        : err.type === 'entity.too.large'
+          ? 'too_large'
+          : undefined;
+    const message =
+      status === 400 && code === 'bad_json'
+        ? 'That request body is not valid JSON.'
+        : status === 413
+          ? 'That request is too large.'
+          : status < 500
+            ? err.message
+            : 'Something went wrong on the server.';
+    if (status >= 500) console.error(err);
+    bad(res, status, message, code);
+  });
 
   return app;
 }
@@ -439,7 +541,17 @@ function start(run: Run): void {
 
   const inbox = new Inbox();
   run.inbox = inbox;
-  runAgent(run, { rfpPath: run.rfpPath!, unattended: false, deadlineMs: DEADLINE_MS, stayOpen: true }, inbox)
+  runAgent(
+    run,
+    {
+      rfpPath: run.rfpPath!,
+      intake: run.intake,
+      unattended: false,
+      deadlineMs: DEADLINE_MS,
+      stayOpen: true,
+    },
+    inbox
+  )
     .then(() => finish(run.stopRequested ? 'stopped' : 'done'))
     .catch((e: Error) => {
       run.bus.emitEvent({ type: 'error', message: e.message });

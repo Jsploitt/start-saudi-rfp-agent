@@ -16,6 +16,7 @@ import { EventBus, type Stamped } from './events.js';
 import type { Section } from './render/blocks.js';
 import type { Inbox } from './agent.js';
 import type { Phase, SessionRow, SessionStatus } from './sessions/types.js';
+import type { Intake } from './contracts.js';
 import {
   appendTranscript,
   ensureSessionDir,
@@ -79,8 +80,14 @@ export type RunInit = {
   rfpName?: string | null;
   restartedFrom?: string | null;
   userId?: string | null;
+  /** The intake form, collected before the RFP. */
+  intake?: Intake | null;
   /** Seed the event sequence when rehydrating a finished session. */
   startSeq?: number;
+  /** When the session was created. Seeded on rehydration so the clock is the run's own. */
+  startedAt?: number;
+  /** When it ended, if it has. Stops that clock where it actually stopped. */
+  finishedAt?: number | null;
   /** A rehydrated session must not write to disk merely by existing. */
   persist?: boolean;
 };
@@ -89,7 +96,16 @@ export class Run {
   readonly id: string;
   readonly dir: string;
   readonly bus: EventBus;
-  readonly started = Date.now();
+  /**
+   * When the run began — its creation time, not this object's.
+   *
+   * A rehydrated Run is constructed when someone reopens the session, which is
+   * hours after the run it represents. Left as `Date.now()` the elapsed clock
+   * restarted at zero every time a finished session was opened, so a run that
+   * took four minutes displayed as "0:23" and got shorter the sooner you
+   * looked at it.
+   */
+  readonly started: number;
 
   title: string;
   mode: string;
@@ -99,6 +115,11 @@ export class Run {
   rfpName: string | null;
   restartedFrom: string | null;
   userId: string | null;
+  /**
+   * What the operator stated before the RFP was read. The agent is told these
+   * as fact; anything left blank it asks about like any other gap.
+   */
+  intake: Intake | null;
   theme: { preset: string | null; accent: string | null } = { preset: null, accent: null };
 
   rfp: RfpAnalysis | null = null;
@@ -127,6 +148,8 @@ export class Run {
   interruptHandle: (() => void) | null = null;
   /** One warn per wedged run, not one every watchdog tick. */
   alive = true;
+  /** Set once the run ends, so the elapsed clock stops where the run did. */
+  finishedAt: number | null;
 
   private persist: boolean;
   private dirReady = false;
@@ -141,6 +164,9 @@ export class Run {
     this.rfpName = init.rfpName ?? null;
     this.restartedFrom = init.restartedFrom ?? null;
     this.userId = init.userId ?? null;
+    this.intake = init.intake ?? null;
+    this.started = init.startedAt ?? Date.now();
+    this.finishedAt = init.finishedAt ?? null;
     this.persist = init.persist ?? true;
 
     this.bus = new EventBus({
@@ -162,8 +188,9 @@ export class Run {
     return `/runs/${this.id}/proposal.html`;
   }
 
+  /** Stops when the run stops. A finished run does not keep ageing on screen. */
   get elapsedMs(): number {
-    return Date.now() - this.started;
+    return (this.finishedAt ?? Date.now()) - this.started;
   }
 
   get sinceLastActivityMs(): number {
@@ -183,8 +210,14 @@ export class Run {
   }
 
   setStatus(status: SessionStatus, extra: Partial<SessionRow> = {}): void {
+    const changed = this.status !== status;
+    if (extra.finishedAt != null) this.finishedAt = extra.finishedAt;
     this.status = status;
     if (this.persist) store.updateSession(this.id, { status, ...extra });
+    /* Announce it. Without this the operator UI has to poll the session
+       endpoint to notice that a run went to `waiting` or `error`, and a tab
+       that is already holding the stream open should not have to. */
+    if (changed) this.bus.emitEvent({ type: 'session', status });
   }
 
   setTitle(title: string): void {
@@ -275,6 +308,7 @@ export function createRun(init: RunInit = {}): Run {
       rfpPath: run.rfpPath,
       rfpName: run.rfpName,
       restartedFrom: run.restartedFrom,
+      intake: run.intake ? JSON.stringify(run.intake) : null,
     });
   }
   return registerRun(run);

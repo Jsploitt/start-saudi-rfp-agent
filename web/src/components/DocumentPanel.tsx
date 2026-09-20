@@ -104,6 +104,13 @@ export function DocumentPanel({
           </Button>
         ) : null}
         <span className="flex-1" />
+        {/* The export is asynchronous: the request returns as soon as the job
+            is queued and the URL arrives later on the stream, because Chromium
+            takes five to fifteen seconds and a request that hangs that long
+            reads as a crash. So the button queues it and the link appears
+            beside it when the file exists — rather than a popup fired from a
+            callback, which the browser would block for having no gesture
+            behind it. */}
         <Button
           size="sm"
           variant="ghost"
@@ -111,8 +118,16 @@ export function DocumentPanel({
           disabled={exporting || state.sectionsDone === 0}
         >
           <FileDown aria-hidden="true" />
-          {exporting ? 'Printing…' : 'PDF'}
+          {exporting ? 'Printing…' : state.pdfUrl ? 'Print again' : 'PDF'}
         </Button>
+        {state.pdfUrl && !exporting ? (
+          <Button size="sm" variant="secondary" asChild>
+            <a href={state.pdfUrl} target="_blank" rel="noreferrer">
+              <ExternalLink aria-hidden="true" />
+              Open the PDF
+            </a>
+          </Button>
+        ) : null}
         <Button size="sm" variant="ghost" asChild disabled={!fullUrl}>
           {fullUrl ? (
             <a href={fullUrl} target="_blank" rel="noreferrer">

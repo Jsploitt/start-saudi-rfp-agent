@@ -19,6 +19,11 @@ export interface PhaseMeta {
 }
 
 export const PHASES: Record<Phase, PhaseMeta> = {
+  starting: {
+    label: 'Starting',
+    detail: 'Bringing up the agent session.',
+    quietMs: 15_000,
+  },
   'reading-rfp': {
     label: 'Reading the RFP',
     detail: 'Pulling out requirements, dates and the gaps worth asking about.',
@@ -49,8 +54,10 @@ export const PHASES: Record<Phase, PhaseMeta> = {
     detail: 'Checking the draft against every requirement. Up to 120 seconds, silent.',
     quietMs: 120_000,
   },
-  fixing: {
-    label: 'Fixing',
+  /* The server calls this `revising`. This UI called it `fixing`, which was a
+     name nothing else used. The wire wins. */
+  revising: {
+    label: 'Revising',
     detail: 'Rewriting what the review flagged.',
     quietMs: 60_000,
   },
@@ -59,13 +66,16 @@ export const PHASES: Record<Phase, PhaseMeta> = {
     detail: 'The document is written. Ask for a change and it keeps going.',
     quietMs: 0,
   },
-  printing: {
-    label: 'Printing',
-    detail: 'Rendering the PDF.',
-    quietMs: 30_000,
-  },
 };
 
+/**
+ * The rail, in the order a run walks them.
+ *
+ * `starting` is not on it: it lasts a second or two and a step that is always
+ * already past is noise. `revising` is not on it either, because it is a loop
+ * back rather than a step forward — when it is current it is named in the
+ * heading above the rail instead.
+ */
 export const PHASE_ORDER: Phase[] = [
   'reading-rfp',
   'asking',
@@ -73,7 +83,6 @@ export const PHASE_ORDER: Phase[] = [
   'researching',
   'composing',
   'reviewing',
-  'fixing',
   'ready',
 ];
 

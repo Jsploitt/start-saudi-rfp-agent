@@ -7,31 +7,13 @@
  */
 
 import { EventEmitter } from 'node:events';
-import type { Phase } from './sessions/types.js';
+import type { RunEvent, Stamped } from './contracts.js';
 
-export type RunEvent =
-  | { type: 'status'; text: string }
-  | { type: 'act'; verb: string; detail?: string; tool?: string } // "Reading the RFP…"
-  | { type: 'agent'; text: string } // the agent's own prose
-  | { type: 'question'; text: string } // the agent asks; the UI answers
-  | { type: 'answer'; text: string }
-  | { type: 'rfp'; analysis: unknown }
-  | { type: 'brief'; brief: unknown }
-  | { type: 'outline'; sections: { id: string; title: string; intent: string }[] }
-  | { type: 'section:start'; id: string; title: string }
-  | { type: 'section:done'; id: string; title: string; index: number; total: number }
-  | { type: 'preview'; url: string; sectionId?: string }
-  | { type: 'research'; items: string[] }
-  | { type: 'review'; findings: { requirement: string; severity: string; note: string }[] }
-  | { type: 'warn'; text: string }
-  | { type: 'phase'; phase: Phase }
-  | { type: 'pdf'; url: string }
-  | { type: 'theme'; preset: string | null; accent: string | null }
-  | { type: 'done'; url: string; sections: number; elapsedMs: number }
-  | { type: 'stopped' }
-  | { type: 'error'; message: string };
-
-export type Stamped = RunEvent & { at: number; seq: number };
+/* The union and its stamped form are declared in the wire contract, which
+   imports nothing, so the browser can read them without reading this file.
+   Re-exported here because every server module already imports them from
+   './events.js' and the indirection is not worth a rename. */
+export type { RunEvent, Stamped } from './contracts.js';
 
 export type EventBusOptions = {
   /** Continue the numbering of a session read back from the database. */

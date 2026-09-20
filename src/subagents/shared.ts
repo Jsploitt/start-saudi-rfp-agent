@@ -41,6 +41,11 @@ export async function runSubagent<T>(opts: SubagentRun<T>): Promise<T | null> {
       options: {
         systemPrompt: opts.systemPrompt,
         tools: opts.allowWeb ? ['WebSearch', 'WebFetch'] : [],
+        /* Same isolation as the main session: no user or project settings, so
+           no plugins and no MCP servers inherited from whoever is running the
+           server. A subagent with a search tool and nothing else is the point. */
+        settingSources: [],
+        mcpServers: {},
         permissionMode: 'bypassPermissions',
         allowDangerouslySkipPermissions: true,
         maxTurns: opts.allowWeb ? 12 : 4,

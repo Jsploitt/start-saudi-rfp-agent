@@ -6,6 +6,7 @@
   "description": "Agentic RFP-and-proposal generation demo for Start Saudi",
   "scripts": {
     "dev": "tsx src/server.ts",
+    "build": "npm --prefix web ci && npm --prefix web run build",
     "demo": "tsx src/dev/cli.ts",
     "worked-example": "tsx src/dev/worked-example.ts",
     "typecheck": "tsc --noEmit",

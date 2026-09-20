@@ -32,6 +32,28 @@ network hop plus a second thing that can be down buys nothing here.
 4. Health check is `/healthz`, which returns `{ok, version, mode, activeRuns,
    capacity}` and nothing else. No secret is ever in that body.
 
+   It proves the process is listening. It does not prove the app works — see the
+   note on the UI build below. After the first deploy, open the URL and sign in
+   before calling it done.
+
+## The parachute, on a hosted instance
+
+`DEMO_MODE=cached` sets the whole instance to replay the recording. Changing it
+on Railway is a variable change and a redeploy: a new container, a cold start,
+and every session in flight orphaned. That is the wrong tool to reach for with
+an audience watching.
+
+Prefer the per-session version. The RFP screen has **Play the recorded run**,
+and the `F` key does the same thing: the session is created with `mode:
+'cached'` and replays the recording through the real stream and the real
+renderer, on an instance that stays live. Nothing restarts, nothing already
+running is disturbed, and the switch takes one keystroke.
+
+Keep `DEMO_MODE=live` on the hosted instance for that reason. The instance-wide
+setting is the fallback for the fallback — the case where something is wrong
+with the *agent* rather than with one run, and you want every session cached
+without having to remember to press anything.
+
 ## Deploy outside demo windows
 
 A deploy restarts the process, and a restart kills every live agent subprocess.
@@ -60,8 +82,24 @@ Notes on things that are easy to get wrong here:
 - Do not add `npx playwright install`. The base image already has the browsers.
 - `HOME` is set to a writable directory. The Agent SDK subprocess writes there,
   and failing without one looks like an auth error.
-- `tsx` is a runtime dependency, not a dev one, because `tsconfig.json` has
-  `noEmit` and there is no build step.
+- `tsx` is a runtime dependency, not a dev one, because the server's own
+  `tsconfig.json` has `noEmit` and the server is run from TypeScript directly.
+- **The operator UI does have a build step, and it has its own stage.** Miss it
+  and the image ships a working API behind no interface at all — `web/dist`
+  does not exist, `existsSync(webDist)` is false, express serves the routes and
+  nothing else, and `/healthz` returns `{ok: true}` the entire time. The health
+  check cannot catch this. If a deploy comes up and the URL is blank, check
+  that `/app/web/dist/index.html` is in the image before looking anywhere else:
+
+  ```bash
+  docker run --rm --entrypoint sh <image> -c "ls /app/web/dist"
+  ```
+
+  The stage copies exactly two things from outside `web/`: `src/contracts.ts`
+  and `start-saudi-kit/brand`. `contracts.ts` imports nothing, which is what
+  lets that stage typecheck it without the server's `node_modules` — if someone
+  makes it import from `events.ts` again, this build breaks and a laptop build
+  will not.
 - `better-sqlite3` is native, and pinned to `^12`. Do not bump it to 13 without
   testing on Windows first: 13.0.3 segfaults on Node 22 on win32-x64, which is
   every dev machine here. The base image runs Node 24, so the dependency stage
@@ -77,6 +115,20 @@ docker build -t startsaudi .
 ```bash
 docker run --rm -p 5173:5173 -v startsaudi-data:/data -e DEMO_MODE=cached -e ACCESS_PASSCODE=demo1234 -e SESSION_SECRET=change-me-please-32-chars-min startsaudi
 ```
+
+Then check the three things that only the container can tell you:
+
+```bash
+curl -s localhost:5173/healthz                    # {"ok":true,...}, no secret
+curl -s -o /dev/null -w '%{http_code}
+' localhost:5173/s/anything   # 200: the SPA fallback
+docker run --rm --entrypoint sh startsaudi -c "ls /app/web/dist"      # the UI is in there
+```
+
+A restart is worth doing once by hand, because it is the behaviour most likely
+to surprise someone: `docker restart` sends SIGTERM, the log says
+`SIGTERM: shutting down`, and on the way back up it says how many sessions it
+marked `orphaned`. Those sessions keep their sections and stay exportable.
 
 ## Checking a deployment
 

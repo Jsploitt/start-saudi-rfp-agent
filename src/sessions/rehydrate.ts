@@ -14,6 +14,18 @@ import { Run, registerRun, getRun, RfpAnalysis, Brief, type OutlineItem } from '
 import * as store from '../db/store.js';
 import { sessionDir } from './artifacts.js';
 import type { SessionRow, SessionSummary } from './types.js';
+import type { Intake } from '../contracts.js';
+
+/** Stored as JSON in one column. A malformed value is treated as no intake. */
+function readIntake(raw: string | null): Intake | null {
+  if (!raw) return null;
+  try {
+    const parsed = JSON.parse(raw) as unknown;
+    return parsed && typeof parsed === 'object' ? (parsed as Intake) : null;
+  } catch {
+    return null;
+  }
+}
 
 /** Outline order is the one thing that lives in the artifact rather than a table. */
 function readOutline(id: string): OutlineItem[] {
@@ -39,7 +51,10 @@ export function rehydrate(row: SessionRow): Run {
     rfpName: row.rfpName,
     restartedFrom: row.restartedFrom,
     userId: row.userId,
+    intake: readIntake(row.intake),
     startSeq: store.nextSeq(row.id),
+    startedAt: row.createdAt,
+    finishedAt: row.finishedAt,
   });
   run.phase = row.phase;
   run.theme = { preset: row.themePreset, accent: row.themeAccent };

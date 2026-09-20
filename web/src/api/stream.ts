@@ -1,42 +1,38 @@
-import type { Stamped } from '@/types';
-import { isMockMode } from '@/mocks/mode';
+import type { ClientEvent, HeartbeatPayload, Stamped } from '@contracts';
 
 export interface StreamHandle {
   close(): void;
 }
 
-export type EventSink = (e: Stamped) => void;
+export type EventSink = (e: ClientEvent) => void;
 
 /**
- * Subscribe to the run's event stream.
+ * Subscribe to one session's event stream.
  *
- * In production this is an EventSource on /api/events, which the server
- * replays from seq 0 so a tab that arrives late catches up. EventSource
- * reconnects on its own, so there is no retry logic here on purpose.
+ * An `EventSource` on `/api/sessions/:id/events`. The server replays the log
+ * from seq 0 before streaming, so a tab that arrives late — or comes back
+ * after a reload mid-demo — rebuilds the conversation, the log and the
+ * document from the same events the first tab saw.
  *
- * In mock mode the same sink is fed by the fixture replayer instead. The
- * contract is identical — a sink that receives `Stamped` events — so nothing
- * downstream of this function knows or cares which one it got.
+ * There is deliberately no retry logic here. Every frame carries its `seq` on
+ * the SSE `id:` line, so the browser resends `Last-Event-ID` on reconnect by
+ * itself and the server resumes from `WHERE seq > :since`. Hand-rolled
+ * reconnection would have to reimplement that, worse.
+ *
+ * Two kinds of frame arrive and both reach the same sink:
+ *
+ *  - default events, the persisted `RunEvent` union;
+ *  - `event: heartbeat`, every three seconds, which is transient. It is given
+ *    `seq: -1` here so the reducer renders it but never advances the replay
+ *    cursor onto a sequence number the server never stored.
  */
-export function subscribeToEvents(onEvent: EventSink, onError?: (e: unknown) => void): StreamHandle {
-  if (!import.meta.env.PROD && isMockMode()) {
-    /* Statically false in a production build, so the fixture and the replayer
-       are eliminated rather than shipped as an unreachable chunk. */
-    let stop: (() => void) | null = null;
-    let cancelled = false;
-    void import('@/mocks/replay').then(({ startReplay }) => {
-      if (cancelled) return;
-      stop = startReplay(onEvent);
-    });
-    return {
-      close() {
-        cancelled = true;
-        stop?.();
-      },
-    };
-  }
+export function subscribeToEvents(
+  sessionId: string,
+  onEvent: EventSink,
+  onError?: (e: unknown) => void
+): StreamHandle {
+  const es = new EventSource(`/api/sessions/${sessionId}/events`);
 
-  const es = new EventSource('/api/events');
   es.onmessage = (m) => {
     let parsed: Stamped;
     try {
@@ -46,6 +42,20 @@ export function subscribeToEvents(onEvent: EventSink, onError?: (e: unknown) => 
     }
     onEvent(parsed);
   };
+
+  es.addEventListener('heartbeat', (m) => {
+    let beat: HeartbeatPayload;
+    try {
+      beat = JSON.parse((m as MessageEvent<string>).data) as HeartbeatPayload;
+    } catch {
+      return;
+    }
+    onEvent({ ...beat, type: 'heartbeat', at: Date.now(), seq: -1 });
+  });
+
+  /* EventSource reports a dropped connection and a failed reconnect the same
+     way, and it retries on its own either way. The caller decides whether that
+     is worth showing; during the researcher's silent ninety seconds it is not. */
   es.onerror = (e) => onError?.(e);
 
   return { close: () => es.close() };
