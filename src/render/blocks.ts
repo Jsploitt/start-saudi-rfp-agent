@@ -54,8 +54,12 @@ export const UnderstandingBlock = z.object({
   paragraphs: z
     .array(richText)
     .min(1)
-    .max(12)
-    .describe('Short paragraphs. A paragraph beginning "- " renders as a bullet.'),
+    .max(5)
+    .describe(
+      'At most five short paragraphs, and five is the ceiling rather than the target. ' +
+        'A paragraph beginning "- " renders as a bullet. If you need more than five, ' +
+        'the section is two sections.'
+    ),
   sources,
 });
 
@@ -71,7 +75,8 @@ export const ApproachStepsBlock = z.object({
       })
     )
     .min(2)
-    .max(8),
+    .max(6)
+    .describe('Two to six. Rendered as a horizontal path diagram, not a list.'),
   note: richText
     .optional()
     .describe('The footnote. For the six-step path this is non-negotiable: "Steps 1 and 2 run in parallel. The durations above are the government\'s, not ours."'),
@@ -115,7 +120,8 @@ export const TimelineBlock = z.object({
       })
     )
     .min(2)
-    .max(8),
+    .max(6)
+    .describe('Two to six. Rendered as a horizontal path diagram, not a list.'),
   note: richText.optional(),
   sources,
 });
@@ -124,7 +130,11 @@ export const TableBlock = z.object({
   type: z.literal('table'),
   heading: z.string().optional(),
   headers: z.array(z.string()).optional().describe('Omit for a plain two-column label/value table.'),
-  rows: z.array(z.array(richText)).min(1),
+  rows: z
+    .array(z.array(richText))
+    .min(1)
+    .max(8)
+    .describe('At most eight rows. A longer table is two tables on two pages.'),
   footnote: richText.optional(),
   sources,
 });
@@ -185,29 +195,71 @@ export const Block = z.discriminatedUnion('type', [
 export type Block = z.infer<typeof Block>;
 export type BlockType = Block['type'];
 
+/** At most this many blocks on an ordinary slide. Four is a page; eight is a wall. */
+export const MAX_BLOCKS_PER_SECTION = 4;
+
+/** Appendix slides set dense, small and two-column, so they carry more. */
+export const MAX_BLOCKS_PER_APPENDIX = 12;
+
 /** One section renders to one page (one 16:9 slide). */
-export const Section = z.object({
-  id: z.string().describe('Stable kebab-case id, e.g. "about-the-client". Re-composing the same id replaces that section.'),
-  title: z.string().describe('The section name as it appears in the contents list.'),
-  surface: z
-    .enum(['light', 'dark'])
-    .optional()
-    .describe('"dark" is the brand\'s native navy register. Use it for the cover, statement openers and the close.'),
-  blocks: z.array(Block).min(1).max(8),
-});
+export const Section = z
+  .object({
+    id: z.string().describe('Stable kebab-case id, e.g. "about-the-client". Re-composing the same id replaces that section.'),
+    title: z.string().describe('The section name as it appears in the contents list.'),
+    surface: z
+      .enum(['light', 'dark'])
+      .optional()
+      .describe('"dark" is the brand\'s native navy register. Use it for the cover, statement openers and the close.'),
+    columns: z
+      .literal(2)
+      .optional()
+      .describe(
+        'Flow this page down two columns instead of one. For a list-shaped page a ' +
+          'reader scans rather than reads — a contents page, a schedule of fees. ' +
+          'Not for running prose: two columns of body copy on a slide is a newspaper.'
+      ),
+    appendix: z
+      .boolean()
+      .optional()
+      .describe(
+        'Back matter: terms and conditions, and nothing else. Sets the page dense, small and ' +
+          'two-column, drops the accent colour, and exempts it from the density budget. It is ' +
+          'not a way to fit more onto a slide you did not want to split.'
+      ),
+    blocks: z
+      .array(Block)
+      .min(1)
+      .max(MAX_BLOCKS_PER_APPENDIX)
+      .describe(
+        `Two to ${MAX_BLOCKS_PER_SECTION} blocks. One page, 16:9. A section with more blocks than ` +
+          'that is a section that should have been two. Appendix sections may carry more.'
+      ),
+  })
+  .superRefine((s, ctx) => {
+    const max = s.appendix ? MAX_BLOCKS_PER_APPENDIX : MAX_BLOCKS_PER_SECTION;
+    if (s.blocks.length > max) {
+      ctx.addIssue({
+        code: 'custom',
+        path: ['blocks'],
+        message:
+          `${s.blocks.length} blocks on one 16:9 page is too many; the limit is ${max}. ` +
+          'Split this into two sections rather than asking the page to shrink.',
+      });
+    }
+  });
 
 export type Section = z.infer<typeof Section>;
 
 /** Human-readable one-liners, used in the event log and in the system prompt. */
 export const BLOCK_GUIDE: Record<BlockType, string> = {
   cover: 'Page 1 only. Client, title in the brand\'s words, date, reference.',
-  statement: 'A section opener: one sentence. Lead with these — it is what makes a document read as authored.',
-  understanding: 'Three or four short paragraphs proving the RFP was read. The "what we heard" move.',
-  approach_steps: 'The registration path, scene-stepped. Carries the durations and the parallelism footnote.',
-  two_col: 'Comparisons, in-scope vs out-of-scope, or a narrow muted rail beside the main text.',
-  stat_row: 'Two to four figures with captions. Taajeel\'s track record, always attributed.',
-  timeline: 'Calendar dates and milestones, worked backwards from the client\'s own date. Never a competing per-step duration chart.',
-  table: 'Pricing, deliverables, contents, compliance matrix. Headers optional.',
+  statement: 'A section opener: one sentence, 8–18 words, set very large. Lead with these — it is what makes a document read as authored.',
+  understanding: 'At most five short paragraphs, and three is better. Two sentences each. The "what we heard" move, not the whole file.',
+  approach_steps: 'Two to six steps, drawn as a horizontal path. Titles of three or four words; `text` is ONE short line that fits under a node. Carries the durations and the parallelism footnote — a step whose duration says "in parallel" is drawn as a branch.',
+  two_col: 'Comparisons, in-scope vs out-of-scope, or a narrow muted rail beside the main text. Three or four short entries a side.',
+  stat_row: 'Two to four figures, set very large, with captions of four or five words. Taajeel\'s track record, always attributed.',
+  timeline: 'Two to six milestones, drawn as a calendar spine. `who` puts a milestone above the line ("Yours") or below it (ours, the bank\'s). Calendar dates worked backwards from the client\'s own date — never a competing per-step duration chart.',
+  table: 'Pricing, deliverables, contents, compliance matrix. At most eight rows and a short cell; a paragraph in a cell means it is not a table.',
   team: 'People with a role and a one-line bio.',
   quote: 'A sentence quoted back from the RFP, or the ChiefNest case study with its disclosure.',
   rtl_section: 'An Arabic section, RTL. The executive summary when one is asked for.',
