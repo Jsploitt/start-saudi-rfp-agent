@@ -1501,7 +1501,16 @@
             [
               "Subsidiary or branch",
               "10"
-            ],
+            ]
+          ]
+        },
+        {
+          "type": "table",
+          "headers": [
+            "Title",
+            "Page"
+          ],
+          "rows": [
             [
               "Tracked separately — bank account and GM visa",
               "11"
@@ -1532,7 +1541,8 @@
             ]
           ]
         }
-      ]
+      ],
+      "columns": 2
     },
     "introduction": {
       "id": "introduction",
@@ -1549,7 +1559,12 @@
           "paragraphs": [
             "Meridian Flow Systems Ltd, Unit 7, Thornfield Business Park, Harrogate, HG3 1QN, United Kingdom.",
             "18 September 2026.",
-            "Atte: Katherine Brody, Managing Director · +44 7700 900412 · k.brody@meridianflow.co.uk",
+            "Atte: Katherine Brody, Managing Director · +44 7700 900412 · k.brody@meridianflow.co.uk"
+          ]
+        },
+        {
+          "type": "understanding",
+          "paragraphs": [
             "Subject: Saudi commercial registration for Meridian Flow Systems Ltd, service and calibration activity (the \"Assignment\").",
             "Thank you for the brief you sent on 15 September. We've read it in full, and this proposal answers it point by point: eligibility, the ordered steps, what we need from you and when, the fee split, what isn't included, and our terms.",
             "A short list of open items sits near the end. They're the things your brief doesn't yet settle, and we'd rather name them than guess at them."
@@ -2328,7 +2343,8 @@
             "proposal/terms-and-conditions.md"
           ]
         }
-      ]
+      ],
+      "appendix": true
     },
     "terms-2": {
       "id": "terms-2",
@@ -2386,7 +2402,8 @@
             "proposal/terms-and-conditions.md"
           ]
         }
-      ]
+      ],
+      "appendix": true
     }
   },
   "outline": [
