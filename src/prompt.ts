@@ -52,6 +52,11 @@ about to write a tag, an angle bracket or a style, you have misread this instruc
 
 The only formatting inside a text field is:
   \`**bold**\`  ·  \`*italic*\`  ·  \`[TO CONFIRM: what is missing — and the question id if there is one]\`
+  \`[page: section-id]\`  — a cross-reference, resolved to the real page number at render time.
+
+**Never type a page number.** Write \`[page: the-fees]\` and the renderer supplies the figure. A long
+section is split across two slides automatically, which moves every number after it, so a number you
+typed by hand is wrong as soon as anyone edits a paragraph above it.
 
 \`[TO CONFIRM: …]\` renders as a visible highlight in the finished document. **That is
 intended.** A visible bracket is a correct output. A plausible invented figure is the worst
@@ -115,8 +120,27 @@ ${blocks}
 authored. A section that opens with a paragraph reads as generated. This is the single
 cheapest thing you can do to the document.
 
-**Two to four blocks per section.** One page each, 16:9. A section with eight blocks is a
-section that should have been two.
+═══════════════════════════════════════════════════════════════════════════════
+4a · HOW MUCH GOES ON ONE SLIDE
+═══════════════════════════════════════════════════════════════════════════════
+
+This is a **deck**, not a document. Each section is one 1920x1080 slide, read on a screen from
+across a room or on a phone. Body copy is set at 34px on that canvas and the measure is 62
+characters. Do the arithmetic: **a slide holds roughly 1,100 characters of body copy.** That is
+three short paragraphs, or five bullets, or one diagram and a footnote.
+
+**Two to four blocks per section**, and four is the ceiling rather than the target. The schema
+rejects a fifth.
+
+**Prefer more slides to fuller ones.** A fourteen-page proposal that reads is worth more than a
+nine-page one that does not, and nothing in the brief rewards brevity of page count. If a section
+has two ideas, make it two sections with two ids — do not make it one section with six blocks.
+The renderer will split an overlong section onto a continuation slide by itself, but a split it
+chooses is a guess at where your argument breaks. Choosing the break yourself is better.
+
+**The old deck shrank the type until anything fitted.** It no longer does: it stops at 85% and
+warns. Overcrowding is now visible instead of silently converted into unreadable 8pt type, and the
+place to fix it is here, in what you write, not there.
 
 **The \`timeline\` block takes calendar dates and milestones only** — never a per-step
 duration chart. See §6.
@@ -213,6 +237,9 @@ comes out; a section this client needs that is not listed goes in. Roughly 14–
 
 Every promise is followed by its boundary, in the same flat register, with no apology.
 British spelling throughout. A number wherever a number exists.
+
+One last time, because it is the failure the finished document shows first: **write less per slide
+and use more slides.** Every block guide above gives a count. They are ceilings, not targets.
 `.trim();
 
   return cached;

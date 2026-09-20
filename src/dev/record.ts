@@ -12,7 +12,7 @@ import { mkdirSync, writeFileSync } from 'node:fs';
 import { isAbsolute, join } from 'node:path';
 import { existsSync } from 'node:fs';
 import { runAgent, Inbox } from '../agent.js';
-import { newRun } from '../run.js';
+import { createRun } from '../run.js';
 import { FIXTURES_DIR, KIT_DIR, ROOT } from '../paths.js';
 import { isMain } from '../isMain.js';
 import type { Stamped } from '../events.js';
@@ -42,7 +42,7 @@ function resolveRfp(arg: string): string {
 
 if (isMain(import.meta.url)) {
   const rfpPath = resolveRfp(process.argv[2] ?? 'proposal/sample-rfp.md');
-  const run = newRun('recording');
+  const run = createRun({ id: 'recording', title: 'recording', rfpPath, mode: 'live' });
   const events: Stamped[] = [];
   const inbox = new Inbox();
   let answered = false;
@@ -62,7 +62,7 @@ if (isMain(import.meta.url)) {
     }
   });
 
-  await runAgent({ rfpPath, unattended: false, deadlineMs: 9 * 60_000 }, inbox);
+  await runAgent(run, { rfpPath, unattended: false, deadlineMs: 9 * 60_000 }, inbox);
 
   mkdirSync(FIXTURES_DIR, { recursive: true });
 

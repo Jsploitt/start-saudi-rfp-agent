@@ -1,0 +1,10 @@
+node_modules
+dist
+*.local
+
+# Emitted by a stray `tsc` with noEmit turned off. They shadow the .tsx sources
+# in the next build, so they are ignored rather than discovered later.
+src/**/*.js
+src/**/*.d.ts
+*.tsbuildinfo
+!src/_archive/**

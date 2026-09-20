@@ -6,29 +6,37 @@
   "description": "Agentic RFP-and-proposal generation demo for Start Saudi",
   "scripts": {
     "dev": "tsx src/server.ts",
+    "build": "npm --prefix web ci && npm --prefix web run build",
     "demo": "tsx src/dev/cli.ts",
     "worked-example": "tsx src/dev/worked-example.ts",
     "typecheck": "tsc --noEmit",
     "record": "tsx src/dev/record.ts",
     "shots": "tsx src/dev/shots.ts",
     "rehearse": "tsx src/dev/rehearse.mjs",
-    "golden": "tsx src/dev/golden.ts"
+    "golden": "tsx src/dev/golden.ts",
+    "smoke": "tsx src/dev/smoke.ts"
   },
   "dependencies": {
     "@anthropic-ai/claude-agent-sdk": "^0.3.277",
+    "better-sqlite3": "^12.11.1",
+    "cookie-parser": "^1.4.7",
     "dotenv": "^16.4.5",
     "express": "^4.21.2",
+    "http-proxy-middleware": "^3.0.7",
+    "jose": "^6.2.12",
     "mammoth": "^1.8.0",
     "multer": "^2.4.0",
     "pdf-parse": "^1.1.1",
-    "playwright": "^1.49.1",
+    "playwright": "1.63.0",
+    "tsx": "^4.19.2",
     "zod": "^4.6.5"
   },
   "devDependencies": {
+    "@types/better-sqlite3": "^9.6.0",
+    "@types/cookie-parser": "^1.4.10",
     "@types/express": "^5.0.0",
     "@types/multer": "^1.4.12",
     "@types/node": "^22.10.5",
-    "tsx": "^4.19.2",
     "typescript": "^5.7.3"
   }
 }

@@ -6,3 +6,13 @@ uploads/
 
 uploads/
 public/tokens.css
+build.log
+app.db*
+
+# The server runs its TypeScript directly through tsx, so any .js beside a .ts
+# in src/ is emitted junk — and tsx resolves it in preference to the source,
+# which makes edits appear to do nothing. A stray `tsc` that emits is the usual
+# cause; see web/package.json for the scripts that used to.
+src/**/*.js
+src/**/*.d.ts
+*.tsbuildinfo

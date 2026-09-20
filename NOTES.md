@@ -255,3 +255,106 @@ than as a hang.
 are known, so a run that surfaces different gaps plans a different document. That is the
 system working as designed, but it means no fixed number belongs in the run book, and any
 check that asserts one will be flaky.
+
+---
+
+## Session E — integration
+
+Three branches, built in parallel: a multi-session backend, a React operator UI, and a
+redesigned deck. All three merged into one branch with **zero file conflicts** — the three
+sessions had touched disjoint sets of files almost perfectly. Not one of them worked with
+the others.
+
+**Zero merge conflicts told us nothing about whether the pieces fit.** Git compares text.
+Every real conflict here was semantic: the UI called `POST /api/run` where the server has
+`POST /api/sessions`, subscribed to one global `/api/events` where the server streams per
+session, expected the PDF export to return a URL where the server returns 202 and sends the
+URL down the stream, sent `{themeId}` where the server takes `{preset, accent}`, and had a
+`fixing` phase the server calls `revising` and a `printing` phase the server does not have.
+A clean merge is the beginning of integration, not the end of it.
+
+The fix was `src/contracts.ts`: one module, declaring the event union, the session shapes
+and the heartbeat, imported by both halves. Every disagreement above is now a compile error.
+It is worth having done this at the start; it is not worth having pretended it could be
+skipped.
+
+**`allowedTools` does not restrict tools, and the README said otherwise for weeks.** The
+session was configured with `allowedTools: [the five]` plus a hand-written `disallowedTools`
+list of built-ins, and documented as "five tools and no filesystem". `allowedTools` is an
+auto-approve list — the SDK's own docs say *"To restrict which tools are available, use the
+`tools` option instead"* — and the denylist could only name the tools that existed when it
+was written. A `system`/`init` line showed the agent had also been given `CronCreate`,
+`Monitor`, `Skill`, `ToolSearch` and `Workflow`, plus MCP servers inherited from the
+developer's plugin environment, because `settingSources` was omitted and omitting it loads
+`~/.claude/settings.json` and every plugin it enables.
+
+Three lines close it: `tools: []`, `settingSources: []`, and an `ENV_ALLOWLIST` in place of
+`{ ...process.env }`. The check is one line of output — a session's init now reads
+`tools: []` and `mcp servers: []` — and **that line should have been read on day one.** It
+was always there. Nobody looked at it, because the config *said* what we wanted and config
+that looks right is the easiest kind of wrong to keep.
+
+**The oversized PDF was not an oversized PDF.** A 2.65 MB file in `uploads/` killed every
+run it was given to, and the obvious diagnosis — too much text for the context window — was
+wrong. That PDF extracts to 19,609 characters; it is large because of images. The actual
+cause: multer saves an upload under a random name with **no extension**, `extract()`
+switched on `extname(path)`, got `''`, and fell through to `readFile(path, 'utf8')`. A PDF
+read as UTF-8 became 2.5 million characters of binary — roughly 630,000 tokens — in the
+first turn. The run died before the analysis, and it looked like a hang.
+
+`extract()` now sniffs the first four bytes: `%PDF`, or the zip header a `.docx` is. Trust
+the bytes, not the filename. The same run then completed in 279 seconds with 15 sections.
+**The measurement that mattered took two minutes and would have saved the wrong fix.**
+
+**The parachute had a five-minute fuse.** `DEMO_MODE=cached` is the fallback for a live
+demo, and `replayCachedRun` never called `run.touch()`. So `lastActivityAt` stayed at
+construction: at ninety seconds the watchdog set `alive: false` and the UI said *"the agent
+is not responding"* over a document that was visibly still filling, and at five minutes the
+watchdog stopped the run with an error. The one path that must never fail was the one path
+nobody had watched all the way through, because watching it takes nine minutes and it
+"obviously works". One line.
+
+The watchdog had a second version of the same mistake: a run in `waiting` is idle *because
+it asked the operator a question*, and it was being killed after five minutes of someone
+thinking. In a demo where the question is the thing being shown off, that is most runs.
+
+**The container shipped no interface, and passed its health check.** The Dockerfile copied
+`src`, `public`, `fixtures` and the kit, and never built `web/`. `existsSync(webDist)` is
+false, so express serves the API and nothing else — and `/healthz` returns `{ok: true}`
+throughout. A health check that only proves the process is alive will certify an app with
+no front end. The image now builds the UI in its own stage.
+
+**A regex in `app.use` rewrites the URL.** The dev proxy was mounted as
+`app.use(NOT_OURS, proxy)` where `NOT_OURS` matches the whole path. Express strips the
+matched portion from `req.url` — so every request reached Vite as `/`, the app's own HTML
+came back for `/src/main.tsx`, and the page rendered as a blank white screen with three
+aborted requests and no error anywhere. `pathFilter` selects without rewriting.
+
+**The wire contract has to import nothing.** `contracts.ts` first re-exported its types
+*from* `events.ts` and `sessions/types.ts`. That compiles on a laptop, where the root
+`node_modules` is one directory up, and fails in the container's web build stage, where it
+is not: `node:events` has no types there. The dependency now runs the other way — the
+contract declares, the server re-exports — so the browser can typecheck it alone. **A shared
+module that pulls in a runtime is not shared.**
+
+**`tsc -b --noEmit false` scattered 29 `.js` files through `web/src`.** That was the web
+`typecheck` script, and its output sat next to every `.tsx` source shadowing it on the next
+resolution. Nothing failed; things merely stopped changing when edited. The script is now
+`tsc -b --force` and the emitted shapes are gitignored.
+
+**Express's default error page prints absolute paths.** Malformed JSON answered with an
+HTML stack trace naming every file in the call chain. It would have printed the container's
+layout in production, to anyone who could post a broken body. Every error is now `{error,
+code}` and nothing else.
+
+**`npm run shots` had been broken by a feature in another branch.** Once `/runs/*` went
+behind the session cookie, Chromium arrives without one and screenshots the login page —
+forty-seven times, silently, exit code 0. It now starts the same loopback static listener
+the PDF export uses, and it fails loudly on a non-OK response. A tool that cannot fail is
+not a check.
+
+**The fees slide refused to state a price.** Unprompted, against an RFP that contained a
+priced prior proposal, the agent marked both figures `[TO CONFIRM: … set by Trellis Work's
+CEO, not carried over from the document you supplied]`. The house rule reached the output
+without anyone checking that it would, which is the first thing in this log that worked
+better than expected.

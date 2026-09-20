@@ -38,22 +38,32 @@ export const WORKED_EXAMPLE: Section[] = [
   {
     id: 'contents',
     title: 'Contents',
+    // Two seven-row tables flowing down two columns. One twelve-row table on a
+    // 16:9 page is either set too small to read or too tall to fit.
+    columns: 2,
     blocks: [
       {
         type: 'table',
         rows: [
-          ['Introduction', '3'],
-          ['Start Saudi, powered by Taajeel', '4'],
-          ['A founder who was where you are', '5'],
-          ['About Meridian Flow Systems', '6'],
-          ['The question that decides everything', '7'],
-          ['The whole path', '8'],
-          ['Your dates, worked backwards', '9'],
-          ['Tracked separately — bank account and GM residency', '10'],
-          ['Not covered', '11'],
-          ['The fees', '12'],
-          ['Government fees', '13'],
-          ['Signoff and terms', '14'],
+          ['Introduction', '[page: introduction]'],
+          ['Start Saudi, powered by Taajeel', '[page: about-start-saudi]'],
+          ['A founder who was where you are', '[page: founder]'],
+          ['About Meridian Flow Systems', '[page: about-the-client]'],
+          ['The question that decides everything', '[page: the-question]'],
+          ['The whole path', '[page: the-path]'],
+          ['What you provide', '[page: the-path--2]'],
+        ],
+      },
+      {
+        type: 'table',
+        rows: [
+          ['Your dates, worked backwards', '[page: your-dates]'],
+          ['Tracked separately — bank account and GM residency', '[page: tracked-separately]'],
+          ['Not covered', '[page: not-covered]'],
+          ['The fees', '[page: the-fees]'],
+          ['Government fees', '[page: government-fees]'],
+          ['Executive summary — Arabic', '[page: arabic-summary]'],
+          ['Signoff and terms', '[page: signoff]'],
         ],
       },
     ],
@@ -70,7 +80,7 @@ export const WORKED_EXAMPLE: Section[] = [
           heading: 'Subject: Registering a Saudi company for Meridian Flow Systems Ltd (the "Assignment")',
           body: [
             'Thank you for the brief of 15 September. This sets out what we would do, how long each part takes, what we need from you, and what it costs.',
-            'You asked for a straight answer rather than a polished one. There are two things in here you will not have expected, and one of them may change your capital requirement. They are on page 7 and we have put them before anything else.',
+            'You asked for a straight answer rather than a polished one. There are two things in here you will not have expected, and one of them may change your capital requirement. They are on page [page: the-question] and we have put them before anything else.',
             'Truly yours,',
             '**Taajeel Business Solutions Co. LLC**',
           ],
@@ -205,7 +215,7 @@ export const WORKED_EXAMPLE: Section[] = [
           '- **Classified as services** — calibration, maintenance, technical support — there is **no minimum capital fixed in law**. In practice MISA expects capital proportionate to the activity, and the working benchmark commonly cited for a services company is around **SAR 500,000**.',
           '- **Classified as retail or wholesale trading** at 100% foreign ownership, published guidance cites a capital requirement of **SAR 30,000,000** — roughly sixty times that benchmark.',
           'We are not going to guess which applies. Your brief does not give us enough to settle it. **We confirm the classification with MISA before you commit to anything.** It is the first thing on the discovery call, and the call is free.',
-          'The second thing you did not ask about is on page 10. Someone has to be your General Manager in Saudi Arabia, and neither of you is going to be resident.',
+          'The second thing you did not ask about is on page [page: tracked-separately]. Someone has to be your General Manager in Saudi Arabia, and neither of you is going to be resident.',
         ],
         sources: [
           'content/07-client-types.md',
@@ -245,16 +255,18 @@ export const WORKED_EXAMPLE: Section[] = [
           },
           {
             title: 'Government account activation',
-            text: 'Tax, social insurance and labour portals switched on: ZATCA, GOSI, Qiwa, National Address, Chamber of Commerce',
+            // content/04-process.md verbatim. The portal names moved to the
+            // footnote: a node on a path diagram carries one line, not six.
+            text: 'Tax, social insurance and labour portals switched on',
             duration: '24 hours',
           },
           {
             title: 'After incorporation',
             text: 'GM visa and bank account, tracked separately',
-            duration: 'page 10',
+            duration: 'page [page: tracked-separately]',
           },
         ],
-        note: 'Steps 1 and 2 run in parallel, which is why the total is 15 and not 17. **The durations above are the government\'s, not ours.** Fifteen working days means fifteen Saudi business days — Sunday to Thursday. From complete documents that is about three calendar weeks. It is a service promise, not a legal guarantee from any ministry.',
+        note: 'Steps 1 and 2 run in parallel, which is why the total is 15 and not 17. **The durations above are the government\'s, not ours.** Fifteen working days means fifteen Saudi business days — Sunday to Thursday, about three calendar weeks from complete documents. A service promise, not a legal guarantee from any ministry. Step 5 covers ZATCA, GOSI, Qiwa, National Address and the Chamber of Commerce.',
         sources: ['content/04-process.md', 'content/02-services/01-misa-investment-licence.md'],
       },
       {
@@ -278,7 +290,7 @@ export const WORKED_EXAMPLE: Section[] = [
         phases: [
           {
             when: 'Now — before you choose a provider',
-            what: 'Start the apostille on the six documents on page 8',
+            what: 'Start the apostille on the six documents on page [page: the-path--2]',
             who: 'Yours',
           },
           {
@@ -352,7 +364,7 @@ export const WORKED_EXAMPLE: Section[] = [
             '**Daniel Ayre relocates**',
             'He becomes GM and takes the residency path: MISA support letter, HRSD approval, work visa, contract attestation, embassy, medical, biometrics, Iqama',
             'Roughly **six to eight weeks** after the CR, much of it dependent on his own availability',
-            '[TO CONFIRM: Start Saudi\'s fee for the GM residency path], plus government fees on page 13',
+            '[TO CONFIRM: Start Saudi\'s fee for the GM residency path], plus government fees on page [page: government-fees]',
           ],
           [
             '**Appoint a resident GM**',
@@ -379,19 +391,28 @@ export const WORKED_EXAMPLE: Section[] = [
     title: 'Not covered',
     blocks: [
       {
-        type: 'understanding',
-        heading: 'Not in the fee on page 12. Available, priced separately, discussed case by case',
-        paragraphs: [
-          '- Apostille and legalisation of your documents in the UK, and certified Arabic translation',
-          '- Bank account opening support',
-          '- The GM residency path, and any employee visas after it',
-          '- Employment contracts, payroll and ongoing HR and government-relations operations',
-          '- Recruitment of your Saudi engineers',
-          '- Trademark registration',
-          '- Any activity-specific licence beyond the MISA investment licence, should your classification require one',
-          '- Annual renewals after year one — the commercial registration, the Chamber of Commerce subscription and the platform subscriptions all renew',
-          '- Legal, accounting, Zakat and tax advice. We are not your lawyers or your accountants and our terms say so',
-        ],
+        // Nine exclusions is a list to scan, not prose to read, so it is set as
+        // two columns of four or five rather than one column of nine.
+        type: 'two_col',
+        left: {
+          heading: 'Not in the fee. Available, priced separately',
+          body: [
+            '- Apostille and legalisation of your documents in the UK, and certified Arabic translation',
+            '- Bank account opening support',
+            '- The GM residency path, and any employee visas after it',
+            '- Employment contracts, payroll and ongoing HR and government-relations operations',
+            '- Recruitment of your Saudi engineers',
+          ],
+        },
+        right: {
+          heading: 'Also outside this fee',
+          body: [
+            '- Trademark registration',
+            '- Any activity-specific licence beyond the MISA investment licence, should your classification require one',
+            '- Annual renewals after year one — the commercial registration, the Chamber of Commerce subscription and the platform subscriptions all renew',
+            '- Legal, accounting, Zakat and tax advice. We are not your lawyers or your accountants and our terms say so',
+          ],
+        },
         sources: ['content/05-pricing.md', 'proposal/terms-and-conditions.md'],
       },
     ],
@@ -404,7 +425,7 @@ export const WORKED_EXAMPLE: Section[] = [
       {
         type: 'understanding',
         paragraphs: [
-          'The price has two parts. **Taajeel\'s service fee**, for running the filings end to end — the six steps on page 8. And **government fees**, set by the authorities and varying by activity and company type. They are on page 13. **Government fees are not included in the service fee.**',
+          'The price has two parts. **Taajeel\'s service fee**, for running the filings end to end — the six steps on page [page: the-path]. And **government fees**, set by the authorities and varying by activity and company type. They are on page [page: government-fees]. **Government fees are not included in the service fee.**',
         ],
         sources: ['content/05-pricing.md'],
       },
@@ -433,7 +454,7 @@ export const WORKED_EXAMPLE: Section[] = [
             '- Payments are due within five days of the maturity date',
             '- Payments are non-refundable and payable on signing',
             '- VAT at 15% is charged on fees paid, per ZATCA',
-            '- **Share capital is not a fee.** It is money you put into your own company. See page 7 — the amount depends on your activity classification, and settling that comes first',
+            '- **Share capital is not a fee.** It is money you put into your own company. See page [page: the-question] — the amount depends on your activity classification, and settling that comes first',
           ],
         },
         sources: ['content/05-pricing.md'],
@@ -480,8 +501,7 @@ export const WORKED_EXAMPLE: Section[] = [
         body: [
           'نُسجّل شركتكم السعودية خلال **15 يوم عمل**، ابتداءً من اكتمال المستندات. ويعني ذلك أيام العمل السعودية، من الأحد إلى الخميس.',
           'نُنفّذ المسار كاملاً: رخصة الاستثمار من وزارة الاستثمار، وحجز الاسم التجاري، وعقد التأسيس وتوثيقه، والسجل التجاري، وتفعيل الحسابات الحكومية. توقّعون من مكانكم.',
-          'الخطوتان الأولى والثانية تجريان بالتوازي. **المدد أعلاه مدد الجهات الحكومية، وليست مددنا.**',
-          'أمران خارج هذه المدة: الحساب البنكي، وإقامة المدير العام. نتابعهما ونخبركم بوضعهما، ويسير كل منهما على جدوله الخاص.',
+          'الخطوتان الأولى والثانية تجريان بالتوازي. **المدد أعلاه مدد الجهات الحكومية، وليست مددنا.** وأمران خارج هذه المدة: الحساب البنكي، وإقامة المدير العام. نتابعهما ونخبركم بوضعهما، ويسير كل منهما على جدوله الخاص.',
           'تصنيف نشاط شركة Meridian Flow Systems Ltd لم يُحدَّد بعد، وهو التصنيف الذي يحدد رأس المال المطلوب: نحو **500,000 ريال** للأنشطة الخدمية، مقابل **30,000,000 ريال** لأنشطة التجزئة والجملة. نؤكّد التصنيف مع وزارة الاستثمار قبل التزامكم.',
           'التاريخ الحاسم هو **7 ديسمبر 2026**: اكتمال مستنداتكم. وكل تأخير بعده يؤخر ما يليه بالقدر نفسه.',
         ],
@@ -524,12 +544,104 @@ export const WORKED_EXAMPLE: Section[] = [
         type: 'understanding',
         heading: 'Taajeel\'s nine standard clauses apply in full',
         paragraphs: [
-          'Definitions · Role of Taajeel · Authority · Information · Confidentiality · Taajeel Liability · Advertisements · Termination · Notices. Attached in full and unaltered.',
-          'Four of them are worth surfacing here rather than leaving buried:',
+          'Definitions · Role of Taajeel · Authority · Information · Confidentiality · Taajeel Liability · Advertisements · Termination · Notices. They follow this page in full and unaltered. Four of them are worth surfacing here rather than leaving buried:',
           '- **Liability is capped at the fees actually paid.**',
           '- **Disputes go to arbitration** at the GCC Commercial Arbitration Centre.',
           '- **The agreement runs one year and renews automatically** unless either side gives 90 days\' notice.',
-          '- **We are not responsible for legal, regulatory, accounting, Zakat or taxation advice.** Page 7 tells you what we will confirm with MISA; it is not tax advice and you should take your own.',
+          '- **We are not responsible for legal, regulatory, accounting, Zakat or taxation advice.** Page [page: the-question] tells you what we will confirm with MISA; it is not tax advice and you should take your own.',
+        ],
+        sources: ['proposal/terms-and-conditions.md'],
+      },
+    ],
+  },
+
+  {
+    id: 'terms-clauses',
+    title: 'Terms and conditions, 1 of 2',
+    appendix: true,
+    blocks: [
+      {
+        type: 'understanding',
+        heading: 'DEFINITIONS',
+        paragraphs: [
+          'References in these Terms to the "Letter" and/or "Proposal" mean the covering letter accompanying these Terms. Unless otherwise defined, words defined in the Letter and/or "Proposal" have the same meaning in these Terms.',
+        ],
+        sources: ['proposal/terms-and-conditions.md'],
+      },
+      {
+        type: 'understanding',
+        heading: 'ROLE OF Taajeel',
+        paragraphs: [
+          'Taajeel will carry out the services set out in the "Letter" and/or "Proposal" and will not be obliged to provide any other advice or services unless it expressly agrees to do so. It will not be responsible for providing other specialist advice (such as on legal, regulatory, accounting, Zakat, or taxation matters), building certain infrastructure that the Client may require or set specifications (such as systems, servers, equipment, programs, etc), or services which the Client has agreed to provide or would usually provide (or which are being provided or would usually be provided by a third party), nor will it be responsible for any due diligence beyond the scope agreed in the "Letter" and/or "Proposal". It is the Client\'s responsibility to consider all advice received from its other advisors, if any, and to ensure that such advice is adequate for the purposes of the Assignment. Taajeel\'s role in connection with the Assignment must not be disclosed by the Client or announced publicly unless Taajeel agrees or is required by law or appropriate regulatory authority.',
+        ],
+        sources: ['proposal/terms-and-conditions.md'],
+      },
+      {
+        type: 'understanding',
+        heading: 'AUTHORITY',
+        paragraphs: [
+          'The Client agrees that its instructions in relation to the Assignment will be properly authorised if they are given (whether verbally or in writing) by any of the persons referred to in the Letter and/or "Proposal". The Client undertakes to ensure that it and the parties connected with it retain all the authorisations and comply with all laws and regulatory requirements relevant to the Assignment and/or the Project.',
+          'Taajeel is authorised by the Client to carry out such steps as it considers necessary to complete the Assignment including acting through agents and using the services of separate legal or other professional advisers of its choice. Any of the services to be performed by Taajeel may, at Taajeel\'s discretion to be performed by any of Taajeel\'s subsidiaries and/or any of their respective officers, employees, representatives, or agents (together the "Taajeel Group" and each a "member of the Taajeel Group").',
+        ],
+        sources: ['proposal/terms-and-conditions.md'],
+      },
+      {
+        type: 'understanding',
+        heading: 'INFORMATION',
+        paragraphs: [
+          'To enable it to carry out the Assignment, Taajeel may require certain information from the Client which may relate either to the business, assets, operation, or financial condition of the Client. Taajeel will rely on the Client to provide such information in a timely manner and to check that any such information supplied is true, fair, complete and accurate and not misleading in any material respect. If the Client discovers that any information so supplied or published which is material in the context of the Assignment is not true, fair, complete, and accurate or is misleading in any material respect, the Client will notify Taajeel immediately.',
+        ],
+        sources: ['proposal/terms-and-conditions.md'],
+      },
+      {
+        type: 'understanding',
+        heading: 'CONFIDENTIALITY',
+        paragraphs: [
+          'Taajeel shall not disclose to any person (other than to members of the Taajeel Group or, with the Client\'s consent, Taajeel\'s holding company (the Taajeel Group and Taajeel\'s holding company together the "Group") or its or the holding company\'s professional advisers) any Confidential Information provided to Taajeel pursuant to the Assignment except in the performance of its duties and obligations hereunder or as required by law or any appropriate regulatory authority. For these purposes, "Confidential Information" means any information or data concerning the Client which has been provided to Taajeel by the Client that would appear to a reasonable person to be confidential or proprietary (or that the Client has indicated is confidential or proprietary) and which is not in the public domain (otherwise than as a result of a breach of these Terms by Taajeel) or was already in the possession of Taajeel.',
+          'Any advice or documentation provided by Taajeel is, unless otherwise agreed by Taajeel, solely for the benefit of the Client and may not be used or relied on by any third party without Taajeel\'s prior written consent. The Client agrees that it will keep confidential and will not disclose to any person (other than to its other professional advisers) advice or documentation which it receives from Taajeel except as required by law or any appropriate regulatory authority.',
+          'Intellectual property rights in all advice and documentation prepared by Taajeel in relation to the Assignment shall vest in Taajeel absolutely, but the Client shall have a licence to copy the documentation in its entire form for the purpose of the Assignment.',
+        ],
+        sources: ['proposal/terms-and-conditions.md'],
+      },
+    ],
+  },
+
+  {
+    id: 'terms-clauses-2',
+    title: 'Terms and conditions, 2 of 2',
+    appendix: true,
+    blocks: [
+      {
+        type: 'understanding',
+        heading: 'Taajeel LIABILITY',
+        paragraphs: [
+          'The Client agrees that, and for all circumstances, Taajeel\'s unforeseeable liability will not exceed total actual fees paid subject matter of the Letter and/or Proposal given that this Assignment is in effect, thus, after completion of the Project and turning in the deliverables indicated in the Letter and/or Proposal, the Client has no recourse on Taajeel for any fees paid relevant to the Assignment. Furthermore, Taajeel is entitled to renegotiate with the Client the circumstances for proper corrective actions otherwise actual costs incurred by Taajeel and Group will be subtracted from the actual fees received by Taajeel.',
+        ],
+        sources: ['proposal/terms-and-conditions.md'],
+      },
+      {
+        type: 'understanding',
+        heading: 'ADVERTISEMENTS',
+        paragraphs: [
+          'Any advertisements relating to the Assignment must be agreed between the Client and Taajeel. The Client will ensure that all announcements or documents published, or statements made or issued by it or on its behalf, or previously specifically approved or authorised by it or by Taajeel, in connection with the Assignment or relevant to it will only be made, issued or published after consultation with Taajeel or, where Taajeel is asked to approve such announcement, document, or statement for the purposes of publicity, with the prior agreement of Taajeel. The Client will ensure that all such announcements, documents, and statements will be true and accurate in all material respects and not misleading or defamatory and, where appropriate, will contain all information and expressions of opinion necessary for legal or regulatory purposes and that all opinions expressed will be honestly held and made after due and careful consideration.',
+        ],
+        sources: ['proposal/terms-and-conditions.md'],
+      },
+      {
+        type: 'understanding',
+        heading: 'TERMINATION',
+        paragraphs: [
+          'The Agreement Duration is what is specified in the timeframe section or one year starting from the date of signing on this Proposal. The Agreement will be automatically renewed for similar period (or periods) unless an official termination letter is furnished by one party to the other 90 days before the end of the Agreement Duration. Taajeel has the right to claim additional fees for additional takes requested by the Client.',
+          'Taajeel may terminate the Assignment at any time by notice in writing if the Client commits a material breach of its obligations under these Terms or the Letter which it fails to remedy within 14 days of being requested to do so or such breach is incapable of remedy.',
+          'Any conflicts emerging from this Proposal/Engagement Letter, and for any reason will be resolved via Arbitration. Such Arbitration will take place in GCC Commercial Arbitration Centre (www.gcccac.org).',
+        ],
+        sources: ['proposal/terms-and-conditions.md'],
+      },
+      {
+        type: 'understanding',
+        heading: 'NOTICES',
+        paragraphs: [
+          'Any notice or other document which may be given or served by either the Client or Taajeel pursuant to the Letter and/or Proposal or these Terms shall be deemed to have been duly given or served on the other party if left at or sent by first class post, electronic mail, or by fax to its registered office or to the address (or fax number) of the other party set out in the Letter and/or Proposal or to such other address (or fax number) as may have been notified by one party to the other. In the case of posting, any such notice shall be deemed to have been received 96 hours after posting. In the case of fax transmission, any such notice shall be deemed to have been received by the addressee immediately upon receipt by the sender of such machine record as indicates that the entire fax was sent to the relevant number.',
         ],
         sources: ['proposal/terms-and-conditions.md'],
       },
