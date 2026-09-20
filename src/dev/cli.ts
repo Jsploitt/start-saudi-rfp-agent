@@ -8,7 +8,7 @@ import 'dotenv/config';
 import { isAbsolute, join } from 'node:path';
 import { existsSync } from 'node:fs';
 import { runAgent } from '../agent.js';
-import { newRun } from '../run.js';
+import { createRun } from '../run.js';
 import { KIT_DIR, ROOT } from '../paths.js';
 import { isMain } from '../isMain.js';
 
@@ -23,7 +23,7 @@ function resolveRfp(arg: string): string {
 if (isMain(import.meta.url)) {
   const arg = process.argv[2] ?? 'proposal/sample-rfp.md';
   const rfpPath = resolveRfp(arg);
-  const run = newRun();
+  const run = createRun({ title: arg, rfpPath, rfpName: arg, mode: 'live' });
   const t0 = Date.now();
 
   run.bus.subscribe((e) => {
@@ -60,6 +60,6 @@ if (isMain(import.meta.url)) {
     }
   });
 
-  await runAgent({ rfpPath, unattended: true, deadlineMs: 6 * 60_000 });
+  await runAgent(run, { rfpPath, unattended: true, deadlineMs: 6 * 60_000 });
   process.exit(0);
 }

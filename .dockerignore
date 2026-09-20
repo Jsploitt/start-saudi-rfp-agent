@@ -1,0 +1,10 @@
+node_modules
+runs
+uploads
+.git
+.env
+*.log
+web/node_modules
+web/dist
+.claude
+build.log

@@ -5,10 +5,10 @@
 
 import { z } from 'zod';
 import { tool } from '@anthropic-ai/claude-agent-sdk';
-import { Brief, getRun } from '../run.js';
+import { Brief, type Run } from '../run.js';
 import { ok, fail } from './result.js';
 
-export const writeBriefTool = tool(
+export const makeWriteBriefTool = (run: Run) => tool(
   'write_brief',
   'Record the working brief and the section outline. Call this after the client has answered ' +
     'your questions and before you compose any section. The outline is a section list with a ' +
@@ -27,8 +27,7 @@ export const writeBriefTool = tool(
       .max(24),
   },
   async ({ brief, outline }) => {
-    const run = getRun();
-    if (!run) return fail('No run is active.');
+    run.touch();
 
     const parsed = Brief.safeParse(brief);
     if (!parsed.success) {
@@ -43,6 +42,7 @@ export const writeBriefTool = tool(
 
     run.brief = parsed.data;
     run.outline = outline;
+    run.setPhase('briefing');
     run.bus.emitEvent({ type: 'brief', brief: parsed.data });
     run.bus.emitEvent({ type: 'outline', sections: outline });
     run.bus.emitEvent({

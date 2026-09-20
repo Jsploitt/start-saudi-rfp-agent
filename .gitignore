@@ -6,3 +6,5 @@ uploads/
 
 uploads/
 public/tokens.css
+build.log
+app.db*

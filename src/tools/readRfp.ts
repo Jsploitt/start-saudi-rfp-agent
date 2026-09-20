@@ -15,7 +15,7 @@ import { readFile } from 'node:fs/promises';
 import { extname, basename } from 'node:path';
 import { z } from 'zod';
 import { tool } from '@anthropic-ai/claude-agent-sdk';
-import { getRun, RfpAnalysis } from '../run.js';
+import { RfpAnalysis, type Run } from '../run.js';
 import { ok, fail } from './result.js';
 
 async function extract(path: string): Promise<string> {
@@ -40,7 +40,7 @@ function stripAnswerKey(text: string): string {
   return cut > 0 ? text.slice(0, cut) : text;
 }
 
-export const readRfpTool = tool(
+export const makeReadRfpTool = (run: Run) => tool(
   'read_rfp',
   'Read the client\'s RFP and record a structured analysis of it. Call it first with only ' +
     'file_path to get the document text. Then call it a second time with the same file_path ' +
@@ -51,10 +51,10 @@ export const readRfpTool = tool(
     analysis: RfpAnalysis.optional().describe('Omit on the first call. Required on the second.'),
   },
   async ({ file_path, analysis }) => {
-    const run = getRun();
-    if (!run) return fail('No run is active.');
+    run.touch();
 
     if (!analysis) {
+      run.setPhase('reading-rfp');
       run.bus.emitEvent({ type: 'act', verb: 'Reading the RFP', detail: basename(file_path), tool: 'read_rfp' });
       let text: string;
       try {
@@ -89,6 +89,7 @@ export const readRfpTool = tool(
     }
 
     run.rfp = parsed.data;
+    run.setPhase('asking');
     run.bus.emitEvent({ type: 'rfp', analysis: parsed.data });
     run.bus.emitEvent({
       type: 'act',

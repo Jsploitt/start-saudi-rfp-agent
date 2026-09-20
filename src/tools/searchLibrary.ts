@@ -6,7 +6,7 @@
 import { z } from 'zod';
 import { tool } from '@anthropic-ai/claude-agent-sdk';
 import { searchLibrary } from '../library.js';
-import { getRun } from '../run.js';
+import type { Run } from '../run.js';
 import { ok } from './result.js';
 
 /** A readable line for the event log — "Checking what we've done in retail…" */
@@ -15,7 +15,7 @@ function phrase(query: string): string {
   return q.length > 52 ? q.slice(0, 52) + '…' : q;
 }
 
-export const searchLibraryTool = tool(
+export const makeSearchLibraryTool = (run: Run) => tool(
   'search_library',
   'Search the Start Saudi content library — the company, its services, the process, pricing, ' +
     'credentials, client types, the FAQ and the terms boilerplate. Every factual claim in the ' +
@@ -25,8 +25,8 @@ export const searchLibraryTool = tool(
     limit: z.number().int().min(1).max(10).optional(),
   },
   async ({ query, limit }) => {
-    const run = getRun();
-    run?.bus.emitEvent({
+    run.touch();
+    run.bus.emitEvent({
       type: 'act',
       verb: 'Checking the library',
       detail: phrase(query),
@@ -34,7 +34,7 @@ export const searchLibraryTool = tool(
     });
 
     const hits = searchLibrary(query, limit ?? 6);
-    run?.transcript({ t: 'search', query, hits: hits.map((h) => `${h.file}#${h.heading}`) });
+    run.transcript({ t: 'search', query, hits: hits.map((h) => `${h.file}#${h.heading}`) });
 
     if (!hits.length) {
       return ok(

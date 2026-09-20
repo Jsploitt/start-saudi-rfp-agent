@@ -9,13 +9,13 @@
 
 import { query, createSdkMcpServer } from '@anthropic-ai/claude-agent-sdk';
 import type { SDKMessage, SDKUserMessage } from '@anthropic-ai/claude-agent-sdk';
-import { readRfpTool } from './tools/readRfp.js';
-import { searchLibraryTool } from './tools/searchLibrary.js';
-import { writeBriefTool } from './tools/writeBrief.js';
-import { composeProposalTool } from './tools/composeProposal.js';
-import { renderPreviewTool } from './tools/renderPreview.js';
+import { makeReadRfpTool } from './tools/readRfp.js';
+import { makeSearchLibraryTool } from './tools/searchLibrary.js';
+import { makeWriteBriefTool } from './tools/writeBrief.js';
+import { makeComposeProposalTool } from './tools/composeProposal.js';
+import { makeRenderPreviewTool } from './tools/renderPreview.js';
 import { buildSystemPrompt } from './prompt.js';
-import { getRun, newRun, type Run } from './run.js';
+import { type Run } from './run.js';
 import { WORKED_EXAMPLE } from './dev/worked-example.js';
 import { ROOT } from './paths.js';
 import { research } from './subagents/researcher.js';
@@ -131,6 +131,11 @@ function openingPrompt(opts: AgentOptions): string {
 
 /** Human-readable lines for the event log. Never raw JSON on screen. */
 function narrate(run: Run, msg: SDKMessage): void {
+  /* Before any type check: every message of any kind, including a tool-use block
+     with no prose in it, is proof the session is alive. This single line is what
+     lets the UI tell "thinking" from "wedged". */
+  run.touch();
+
   if (msg.type === 'assistant') {
     for (const part of msg.message.content) {
       if (part.type === 'text' && part.text.trim()) {
@@ -140,7 +145,11 @@ function narrate(run: Run, msg: SDKMessage): void {
           run.bus.emitEvent({ type: 'error', message: auth });
           continue;
         }
-        run.bus.emitEvent({ type: /\?\s*$|\?\n/.test(text) ? 'question' : 'agent', text });
+        const asking = /\?\s*$|\?\n/.test(text);
+        /* A run waiting on a person is not a run that has stalled, and the
+           listing should not make them look alike. */
+        if (asking && run.running) run.setStatus('waiting');
+        run.bus.emitEvent({ type: asking ? 'question' : 'agent', text });
       }
     }
   }
@@ -169,16 +178,26 @@ function completeFromFallback(run: Run): number {
   return filled;
 }
 
-export async function runAgent(opts: AgentOptions, inbox = new Inbox()): Promise<Run> {
-  const run = getRun() ?? newRun();
+export async function runAgent(run: Run, opts: AgentOptions, inbox = new Inbox()): Promise<Run> {
   const deadline = opts.deadlineMs ?? 8 * 60_000;
 
+  /* The server is built per call, so the five tools can close over this run.
+     The SDK handler signature is (args, extra) and `extra` is MCP request
+     metadata, not our context: a closure is the only honest way to carry the
+     session id without inventing an argument the model would have to fill. */
   const server = createSdkMcpServer({
     name: SERVER,
     version: '1.0.0',
-    tools: [readRfpTool, searchLibraryTool, writeBriefTool, composeProposalTool, renderPreviewTool],
+    tools: [
+      makeReadRfpTool(run),
+      makeSearchLibraryTool(run),
+      makeWriteBriefTool(run),
+      makeComposeProposalTool(run),
+      makeRenderPreviewTool(run),
+    ],
   });
 
+  run.setPhase('starting');
   run.bus.emitEvent({ type: 'status', text: 'Starting' });
   inbox.push(openingPrompt(opts));
 
@@ -212,9 +231,11 @@ export async function runAgent(opts: AgentOptions, inbox = new Inbox()): Promise
   let researching: Promise<void> | null = null;
   const startResearch = () => {
     if (researching || !run.rfp) return;
+    run.setPhase('researching');
     run.bus.emitEvent({ type: 'act', verb: 'Asking the researcher about the client', tool: 'researcher' });
     researching = research(run.rfp, sessionEnv())
       .then((found) => {
+        run.touch();
         if (!found?.findings.length) return;
         run.research = found.findings.map((f) => f.point);
         run.bus.emitEvent({ type: 'research', items: found.findings.map((f) => `${f.point} (${f.basis})`) });
@@ -230,7 +251,9 @@ export async function runAgent(opts: AgentOptions, inbox = new Inbox()): Promise
       })
       .catch(() => {});
   };
-  run.bus.on('event', (e) => {
+  /* Captured so the finally can remove it. An un-removed listener on a long-lived
+     bus is how a registry of sessions turns into a leak. */
+  const offRfp = run.bus.listen((e) => {
     if (e.type === 'rfp') startResearch();
   });
 
@@ -240,6 +263,7 @@ export async function runAgent(opts: AgentOptions, inbox = new Inbox()): Promise
   /** The document is complete. In the room, that is the middle of the demo, not the end. */
   const announceDone = () => {
     completeFromFallback(run);
+    run.setPhase('ready');
     const url = run.writeProposal();
     run.bus.emitEvent({ type: 'preview', url });
     run.bus.emitEvent({
@@ -260,11 +284,14 @@ export async function runAgent(opts: AgentOptions, inbox = new Inbox()): Promise
          public — and then let it fix what the critic found. */
       if (!reviewed && run.sectionCount() >= 3) {
         reviewed = true;
+        run.setPhase('reviewing');
         run.bus.emitEvent({ type: 'act', verb: 'Asking the reviewer to check this against the requirements', tool: 'reviewer' });
         const found = await review(run, sessionEnv());
+        run.touch();
         run.transcript({ t: 'review', review: found });
 
         if (found?.findings.length) {
+          run.setPhase('revising');
           run.bus.emitEvent({ type: 'review', findings: found.findings });
           inbox.push(
             `The reviewer read the draft against the RFP and found ${found.findings.length} ` +
@@ -304,6 +331,7 @@ export async function runAgent(opts: AgentOptions, inbox = new Inbox()): Promise
     run.bus.emitEvent({ type: 'error', message: (e as Error).message });
   } finally {
     clearTimeout(timer);
+    offRfp();
     inbox.close();
     run.interruptHandle = null;
     if (researching) await researching;

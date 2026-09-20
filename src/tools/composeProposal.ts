@@ -13,7 +13,7 @@
 import { z } from 'zod';
 import { tool } from '@anthropic-ai/claude-agent-sdk';
 import { Block, Section } from '../render/blocks.js';
-import { getRun } from '../run.js';
+import type { Run } from '../run.js';
 import { ok, fail } from './result.js';
 
 /** Voice checks that are cheap, deterministic and worth failing over. */
@@ -51,7 +51,7 @@ function voiceProblems(blocks: Block[]): string[] {
   return problems;
 }
 
-export const composeProposalTool = tool(
+export const makeComposeProposalTool = (run: Run) => tool(
   'compose_proposal',
   'Compose ONE section of the proposal from typed blocks and render it. Call this once per ' +
     'section, in outline order. Never try to compose the whole document in one call. ' +
@@ -67,8 +67,8 @@ export const composeProposalTool = tool(
     blocks: z.array(Block).min(1).max(8).describe('Ordered. One page. Lead with a statement block where the section opens an idea.'),
   },
   async ({ sectionId, title, surface, blocks }) => {
-    const run = getRun();
-    if (!run) return fail('No run is active.');
+    run.touch();
+    run.setPhase('composing');
 
     run.bus.emitEvent({ type: 'section:start', id: sectionId, title });
 

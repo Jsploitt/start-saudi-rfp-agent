@@ -5,10 +5,10 @@
 
 import { z } from 'zod';
 import { tool } from '@anthropic-ai/claude-agent-sdk';
-import { getRun } from '../run.js';
+import type { Run } from '../run.js';
 import { ok, fail } from './result.js';
 
-export const renderPreviewTool = tool(
+export const makeRenderPreviewTool = (run: Run) => tool(
   'render_preview',
   'Write the assembled proposal and refresh the preview. Use it when you want the client to ' +
     'look at a particular section, or once at the end. Composing a section already refreshes ' +
@@ -17,8 +17,7 @@ export const renderPreviewTool = tool(
     sectionId: z.string().optional().describe('Scroll the preview to this section.'),
   },
   async ({ sectionId }) => {
-    const run = getRun();
-    if (!run) return fail('No run is active.');
+    run.touch();
     if (!run.sectionCount()) return fail('There is nothing to preview yet. Compose a section first.');
 
     const url = run.writeProposal();
